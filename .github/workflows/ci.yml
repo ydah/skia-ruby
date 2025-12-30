@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: ['3.0', '3.1', '3.2', '3.3', '3.4']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Download SkiaSharp native library (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -L --retry 3 -o skiasharp.nupkg "https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.Linux/3.119.0"
+          unzip -o skiasharp.nupkg -d skiasharp-extract
+          cp skiasharp-extract/runtimes/linux-x64/native/libSkiaSharp.so .
+          echo "LD_LIBRARY_PATH=$PWD" >> $GITHUB_ENV
+      - name: Download SkiaSharp native library (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          curl -L --retry 3 -o skiasharp.nupkg "https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.macOS/3.119.0"
+          unzip -o skiasharp.nupkg -d skiasharp-extract
+          cp skiasharp-extract/runtimes/osx/native/libSkiaSharp.dylib .
+          echo "DYLD_LIBRARY_PATH=$PWD" >> $GITHUB_ENV
+      - name: Run tests
+        run: bundle exec rspec --format documentation
