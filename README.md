@@ -1,0 +1,205 @@
+# Skia Ruby
+
+Skia bindings for Ruby, providing 2D drawing, image processing, PDF generation, and runtime shader capabilities.
+
+<img width="400" alt="Image" src="https://github.com/user-attachments/assets/440971a6-bf10-4cc2-abe6-e5cf28949b95" />
+
+## Status
+
+This project provides a practical, SkiaSharp-compatible API surface in Ruby, with a mix of:
+
+- native-backed features through SkiaSharp C API
+- Ruby convenience/typed layers for ergonomic usage
+
+### Native-backed (current)
+
+- `Surface` / `Canvas` / `Paint` / `Path` / `Image` / `Shader`
+- Shape and path drawing (rect, rrect, arc, points, picture playback)
+- `Document` PDF output
+  - file output
+  - memory stream output
+  - metadata (`title`, `author`, `creation`, `pdfa`, etc.)
+- `Picture` recording / playback / serialization
+- `RuntimeEffect` (SkSL compile and shader creation)
+- Encoders (`PNG`, `JPEG`, `WEBP`)
+
+### Ruby layer (current)
+
+- Geometry/value types
+  - `Point`, `Rect`, `RRect`, `Matrix`, `ImageInfo`, `ColorSpace`
+- Effect wrappers
+  - `MaskFilter`, `ColorFilter`, `ImageFilter`, `PathEffect`
+- Pixel APIs
+  - `Bitmap`, `Pixmap`, `read_pixels` helpers
+- Text primitives
+  - `Font`, `Typeface`, `TextBlob`
+
+### Native build note
+
+- Text layout modules (`skunicode`, `skshaper`, `skparagraph`) are not exposed in the current `libSkiaSharp` build.
+- `skottie` is not exposed in the current `libSkiaSharp` build.
+
+## Requirements
+
+- Ruby 3.0+
+- SkiaSharp native library (`libSkiaSharp`)
+  - macOS: `libSkiaSharp.dylib`
+  - Linux: `libSkiaSharp.so`
+  - Windows: `libSkiaSharp.dll`
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'skia'
+```
+
+Then run:
+
+```bash
+bundle install
+```
+
+## Installing Native Library
+
+The gem loads `libSkiaSharp` from project root, current working directory, `SKIA_LIBRARY_PATH`, or system path.
+
+### macOS
+
+```bash
+curl -L -o skiasharp.nupkg \
+  https://api.nuget.org/v3-flatcontainer/skiasharp.nativeassets.macos/3.119.2/skiasharp.nativeassets.macos.3.119.2.nupkg
+unzip skiasharp.nupkg -d skiasharp-extract
+cp skiasharp-extract/runtimes/osx/native/libSkiaSharp.dylib .
+```
+
+### Linux
+
+```bash
+curl -L -o skiasharp.nupkg https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.Linux.x64
+unzip skiasharp.nupkg -d skiasharp-extract
+cp skiasharp-extract/runtimes/linux-x64/native/libSkiaSharp.so .
+```
+
+### Windows
+
+```powershell
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.Win32 -OutFile skiasharp.nupkg
+Expand-Archive skiasharp.nupkg -DestinationPath skiasharp-extract
+copy skiasharp-extract\runtimes\win-x64\native\libSkiaSharp.dll .
+```
+
+## Quick Start
+
+```ruby
+require 'skia'
+
+surface = Skia::Surface.make_raster(640, 480)
+
+surface.draw do |canvas|
+  canvas.clear(Skia::Color::WHITE)
+
+  paint = Skia::Paint.new
+  paint.antialias = true
+  paint.color = Skia::Color::RED
+
+  canvas.draw_circle(320, 240, 100, paint)
+end
+
+surface.save_png('output.png')
+```
+
+## PDF Example
+
+```ruby
+require 'skia'
+
+Skia::Document.create_pdf('output.pdf', metadata: {
+  title: 'My Report',
+  author: 'skia-ruby',
+  creation: Time.now,
+  raster_dpi: 144.0,
+  encoding_quality: 90
+}) do |doc|
+  doc.page(612, 792) do |canvas|
+    canvas.clear(Skia::Color::WHITE)
+
+    font = Skia::Font.new(nil, 24.0)
+    paint = Skia::Paint.new
+    paint.color = Skia::Color::BLACK
+
+    canvas.draw_text('Hello, PDF!', 50, 100, font, paint)
+  end
+end
+```
+
+## Runtime Shader Example
+
+```ruby
+require 'skia'
+
+sksl = <<~SKSL
+  half4 main(float2 coord) {
+    half r = coord.x / 640.0;
+    half g = coord.y / 360.0;
+    return half4(r, g, 0.35, 1.0);
+  }
+SKSL
+
+effect = Skia::RuntimeEffect.make_for_shader(sksl)
+shader = effect.make_shader
+
+surface = Skia::Surface.make_raster(640, 360)
+paint = Skia::Paint.new
+paint.shader = shader
+
+surface.draw do |canvas|
+  canvas.draw_rect(Skia::Rect.from_wh(640, 360), paint)
+end
+
+surface.save_png('runtime_effect.png')
+```
+
+## API Coverage (Skia docs parity)
+
+| Area | Status | Notes |
+| --- | --- | --- |
+| Core drawing (`Surface`/`Canvas`/`Paint`/`Path`) | Implemented | Main 2D drawing APIs are available |
+| Shape/text primitives (`RRect`, `TextBlob`) | Implemented | Glyph-positioned drawing is supported via `TextBlob` |
+| Effects (`MaskFilter`, `ColorFilter`, `ImageFilter`, `PathEffect`) | Implemented | Exposed through Ruby wrappers and `Paint` setters |
+| Pixel and color APIs (`Bitmap`, `Pixmap`, `ImageInfo`, `ColorSpace`) | Implemented | Read/copy/access pixel-level data |
+| Image and shader extensions | Implemented | Includes gradients and runtime shader compilation |
+| PDF document APIs | Implemented | File/memory output and metadata are supported |
+| GPU-oriented surface constructors | Partial | Requires externally managed native GPU context pointers |
+| Text layout modules (`skunicode`, `skshaper`, `skparagraph`) | Not implemented | Required native symbols are absent in current build |
+| `skottie` (Lottie) | Not implemented | Required native symbols are absent in current build |
+
+## Development
+
+After checking out the repo, install dependencies:
+
+```bash
+bundle install
+```
+
+Run examples:
+
+```bash
+ruby examples/basic_drawing.rb
+ruby examples/gradient.rb
+ruby examples/bar_chart.rb
+ruby examples/advanced_features.rb
+ruby examples/pdf_stream.rb
+ruby examples/runtime_effect.rb
+```
+
+## License
+
+This project is available under the [MIT License](LICENSE).
+
+## Contributing
+
+Bug reports and pull requests are welcome at:
+
+- https://github.com/ydah/skia-ruby

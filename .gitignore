@@ -1,0 +1,54 @@
+# Bundler
+/.bundle/
+/vendor/bundle/
+
+# Gem build artifacts
+*.gem
+/pkg/
+
+# Ruby specific
+/.ruby-version
+Gemfile.lock
+
+# Test and coverage
+/coverage/
+/spec/reports/
+/spec/examples.txt
+/.rspec_status
+
+# Documentation
+/doc/
+/.yardoc/
+
+# IDE and editor
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ruby LSP
+/.ruby-lsp/
+
+# Native libraries (download separately)
+*.dylib
+*.so
+*.dll
+*.nupkg
+/skiasharp-extract/
+
+# Temporary files
+/tmp/
+*.log
+
+# Test output files
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.pdf
+*.skp
+!examples/*.png
+!examples/*.jpg
+!examples/*.pdf
