@@ -1,6 +1,6 @@
 # Skia Ruby
 
-Skia bindings for Ruby, providing 2D drawing, image processing, PDF generation, and runtime shader capabilities.
+Skia bindings for Ruby, providing 2D drawing, image processing, PDF generation, runtime shaders, skottie animation, and SVG path/DOM rendering.
 
 <img width="400" alt="Image" src="https://github.com/user-attachments/assets/440971a6-bf10-4cc2-abe6-e5cf28949b95" />
 
@@ -21,6 +21,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
   - metadata (`title`, `author`, `creation`, `pdfa`, etc.)
 - `Picture` recording / playback / serialization
 - `RuntimeEffect` (SkSL compile and shader creation)
+- `Skottie` (Lottie JSON animation load/seek/render)
 - Encoders (`PNG`, `JPEG`, `WEBP`)
 
 ### Ruby layer (current)
@@ -33,11 +34,14 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
   - `Bitmap`, `Pixmap`, `read_pixels` helpers
 - Text primitives
   - `Font`, `Typeface`, `TextBlob`
+- Structured helpers
+  - `Textlayout` (`Shaper`, `Paragraph`)
+  - `Svg::Dom` (`<path>` load and draw)
 
 ### Native build note
 
-- Text layout modules (`skunicode`, `skshaper`, `skparagraph`) are not exposed in the current `libSkiaSharp` build.
-- `skottie` is not exposed in the current `libSkiaSharp` build.
+- Text layout modules (`skunicode`, `skshaper`, `skparagraph`) are generally not exposed in `libSkiaSharp` builds.
+- This gem checks symbol availability at runtime and raises `UnsupportedOperationError` with the missing symbol names.
 
 ## Requirements
 
@@ -64,6 +68,30 @@ bundle install
 ## Installing Native Library
 
 The gem loads `libSkiaSharp` from project root, current working directory, `SKIA_LIBRARY_PATH`, or system path.
+
+### Recommended (script-based)
+
+Use the bundled installer scripts (defaults to prebuilt download):
+
+```bash
+scripts/install_native_skia.sh prebuilt
+export SKIA_NATIVE_SOURCE=prebuilt
+export SKIA_PREBUILT_DIR="$PWD/vendor/native/$(uname | tr '[:upper:]' '[:lower:]')"
+```
+
+On Windows:
+
+```powershell
+.\scripts\install_native_skia.ps1 -Mode prebuilt
+$env:SKIA_NATIVE_SOURCE = "prebuilt"
+$env:SKIA_PREBUILT_DIR = "$pwd\\vendor\\native\\windows"
+```
+
+`SKIA_NATIVE_SOURCE` modes:
+
+- `auto`: explicit path / local / prebuilt / system fallback
+- `local`: use local library only (`SKIA_LIBRARY_PATH` required)
+- `prebuilt`: use prebuilt vendor path (`SKIA_PREBUILT_DIR` or `vendor/native/<platform>`)
 
 ### macOS
 
@@ -171,9 +199,10 @@ surface.save_png('runtime_effect.png')
 | Pixel and color APIs (`Bitmap`, `Pixmap`, `ImageInfo`, `ColorSpace`) | Implemented | Read/copy/access pixel-level data |
 | Image and shader extensions | Implemented | Includes gradients and runtime shader compilation |
 | PDF document APIs | Implemented | File/memory output and metadata are supported |
+| `skottie` (Lottie) | Implemented | JSON load/seek/render via `Skia::Skottie::Animation` |
+| SVG path / SVG DOM | Implemented | `Skia::Svg.parse_path`, `Skia::Svg::Dom` (`<path>` focused) |
 | GPU-oriented surface constructors | Partial | Requires externally managed native GPU context pointers |
-| Text layout modules (`skunicode`, `skshaper`, `skparagraph`) | Not implemented | Required native symbols are absent in current build |
-| `skottie` (Lottie) | Not implemented | Required native symbols are absent in current build |
+| Text layout modules (`skunicode`, `skshaper`, `skparagraph`) | Partial | Ruby API is available; native symbols may be absent depending on `libSkiaSharp` build |
 
 ## Development
 
@@ -192,7 +221,12 @@ ruby examples/bar_chart.rb
 ruby examples/advanced_features.rb
 ruby examples/pdf_stream.rb
 ruby examples/runtime_effect.rb
+ruby examples/textlayout.rb
+ruby examples/skottie.rb
+ruby examples/svg_dom.rb
 ```
+
+Release and upstream sync guidance: `docs/release-checklist.md`
 
 ## License
 
