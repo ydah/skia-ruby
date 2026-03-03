@@ -13,12 +13,16 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+          - windows-latest
         ruby:
           - '3.2'
           - '3.3'
           - '3.4'
           - '4.0'
           - 'head'
+        exclude:
+          - os: windows-latest
+            ruby: 'head'
     steps:
       - uses: actions/checkout@v6
       - name: Set up Ruby
@@ -26,19 +30,76 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Download SkiaSharp native library (Linux)
-        if: runner.os == 'Linux'
+      - name: Install SkiaSharp native library (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
-          curl -L --retry 3 -o skiasharp.nupkg "https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.Linux/3.119.2"
-          unzip -o skiasharp.nupkg -d skiasharp-extract
-          cp skiasharp-extract/runtimes/linux-x64/native/libSkiaSharp.so .
-          echo "LD_LIBRARY_PATH=$PWD" >> $GITHUB_ENV
-      - name: Download SkiaSharp native library (macOS)
-        if: runner.os == 'macOS'
+          mkdir -p .ci-logs
+          if [[ -x scripts/install_native_skia.sh ]]; then
+            scripts/install_native_skia.sh prebuilt 2>&1 | tee .ci-logs/native-install.log
+          else
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              curl -L --retry 3 -o skiasharp.nupkg "https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.Linux/3.119.2"
+              unzip -o skiasharp.nupkg -d skiasharp-extract >/dev/null
+              mkdir -p vendor/native/linux
+              cp skiasharp-extract/runtimes/linux-x64/native/libSkiaSharp.so vendor/native/linux/
+            else
+              curl -L --retry 3 -o skiasharp.nupkg "https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.macOS/3.119.2"
+              unzip -o skiasharp.nupkg -d skiasharp-extract >/dev/null
+              mkdir -p vendor/native/darwin
+              cp skiasharp-extract/runtimes/osx/native/libSkiaSharp.dylib vendor/native/darwin/
+            fi
+          fi
+
+          echo "SKIA_NATIVE_SOURCE=prebuilt" >> "$GITHUB_ENV"
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            native_dir="$PWD/vendor/native/linux"
+            echo "SKIA_PREBUILT_DIR=$native_dir" >> "$GITHUB_ENV"
+            echo "SKIA_LIBRARY_PATH=$native_dir/libSkiaSharp.so" >> "$GITHUB_ENV"
+            echo "LD_LIBRARY_PATH=$native_dir" >> "$GITHUB_ENV"
+          else
+            native_dir="$PWD/vendor/native/darwin"
+            echo "SKIA_PREBUILT_DIR=$native_dir" >> "$GITHUB_ENV"
+            echo "SKIA_LIBRARY_PATH=$native_dir/libSkiaSharp.dylib" >> "$GITHUB_ENV"
+            echo "DYLD_LIBRARY_PATH=$native_dir" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install SkiaSharp native library (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          curl -L --retry 3 -o skiasharp.nupkg "https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.macOS/3.119.2"
-          unzip -o skiasharp.nupkg -d skiasharp-extract
-          cp skiasharp-extract/runtimes/osx/native/libSkiaSharp.dylib .
-          echo "DYLD_LIBRARY_PATH=$PWD" >> $GITHUB_ENV
+          $nativeDir = Join-Path $pwd "vendor/native/windows"
+          $libPath = Join-Path $nativeDir "libSkiaSharp.dll"
+
+          New-Item -ItemType Directory -Path .ci-logs -Force | Out-Null
+          if (Test-Path scripts/install_native_skia.ps1) {
+            ./scripts/install_native_skia.ps1 -Mode prebuilt *>&1 | Tee-Object -FilePath .ci-logs/native-install.log
+          } else {
+            $pkg = "https://www.nuget.org/api/v2/package/SkiaSharp.NativeAssets.Win32/3.119.2"
+            Invoke-WebRequest -Uri $pkg -OutFile skiasharp.nupkg
+            Expand-Archive -Path skiasharp.nupkg -DestinationPath skiasharp-extract -Force
+            New-Item -ItemType Directory -Path $nativeDir -Force | Out-Null
+            Copy-Item skiasharp-extract/runtimes/win-x64/native/libSkiaSharp.dll $libPath -Force
+          }
+
+          if (-not (Test-Path $libPath)) {
+            throw "Skia native library was not found at $libPath"
+          }
+
+          Add-Content $env:GITHUB_ENV "SKIA_NATIVE_SOURCE=prebuilt"
+          Add-Content $env:GITHUB_ENV "SKIA_PREBUILT_DIR=$nativeDir"
+          Add-Content $env:GITHUB_ENV "SKIA_LIBRARY_PATH=$libPath"
+          Add-Content $env:GITHUB_PATH "$nativeDir"
+
       - name: Run tests
         run: bundle exec rspec --format documentation
+
+      - name: Upload native install diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-install-${{ matrix.os }}-${{ matrix.ruby }}
+          if-no-files-found: ignore
+          path: |
+            .ci-logs/**
+            vendor/native/**

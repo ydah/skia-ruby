@@ -49,7 +49,7 @@ install_from_local() {
 install_from_prebuilt() {
   local tmp_dir
   tmp_dir="$(mktemp -d)"
-  trap 'rm -rf "${tmp_dir}"' EXIT
+  trap "rm -rf -- '${tmp_dir}'" EXIT
 
   local nupkg_url
   nupkg_url="https://www.nuget.org/api/v2/package/${PACKAGE}/${VERSION}"

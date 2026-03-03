@@ -21,6 +21,19 @@ module Skia
         end
       end
 
+      def native_assets_download_url
+        case RUBY_PLATFORM
+        when /darwin/
+          'https://www.nuget.org/packages/SkiaSharp.NativeAssets.macOS'
+        when /linux/
+          'https://www.nuget.org/packages/SkiaSharp.NativeAssets.Linux'
+        when /mingw|mswin/
+          'https://www.nuget.org/packages/SkiaSharp.NativeAssets.Win32'
+        else
+          'https://www.nuget.org/packages/SkiaSharp.NativeAssets.macOS'
+        end
+      end
+
       def normalize_library_path(path, lib_name)
         return nil if path.nil? || path.empty?
 
@@ -98,7 +111,7 @@ module Skia
       ffi_lib(*Array(lib_path))
     rescue LoadError => e
       warn 'Failed to load Skia library. Please ensure libSkiaSharp is installed.'
-      warn 'Download from: https://www.nuget.org/packages/SkiaSharp.NativeAssets.macOS'
+      warn "Download from: #{native_assets_download_url}"
       raise e
     end
 
