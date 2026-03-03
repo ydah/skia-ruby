@@ -96,7 +96,7 @@ jobs:
 
       - name: Upload native install diagnostics
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-install-${{ matrix.os }}-${{ matrix.ruby }}
           if-no-files-found: ignore
