@@ -95,5 +95,26 @@ RSpec.describe Skia::Svg do
       expect(dom.paths.length).to eq(7)
       expect { dom.draw(surface.canvas) }.not_to raise_error
     end
+
+    it 'resolves linear and radial gradient fills' do
+      svg = <<~SVG
+        <svg width="100" height="60">
+          <defs>
+            <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ff0000" />
+              <stop offset="100%" style="stop-color:#0000ff;stop-opacity:0.5" />
+            </linearGradient>
+            <radialGradient id="sun"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#ffff00"/></radialGradient>
+          </defs>
+          <rect width="100" height="60" fill="url(#sky)" />
+          <circle cx="50" cy="30" r="15" fill="url(#sun)" />
+        </svg>
+      SVG
+      dom = described_class.from_svg(svg)
+      surface = Skia::Surface.make_raster(100, 60)
+
+      expect { dom.draw(surface.canvas) }.not_to raise_error
+      expect(surface.read_pixels.bytes.uniq.length).to be > 2
+    end
   end
 end

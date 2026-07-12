@@ -263,7 +263,7 @@ surface.save_png('runtime_effect.png')
 | PDF document APIs | Implemented | File/memory output and metadata are supported |
 | XPS document APIs | Platform-specific | File/memory and multi-page output are supported by Windows libSkiaSharp builds |
 | `skottie` (Lottie) | Implemented | JSON load/seek/render plus font manager and resource-provider builders |
-| SVG path / SVG DOM | Implemented | SVG canvas output plus path, basic shape, group-content, and text rendering |
+| SVG path / SVG DOM | Implemented | SVG canvas output plus paths, shapes, text, groups, and linear/radial gradient fills |
 | GPU-oriented surface constructors | Partial | Requires externally managed native GPU context pointers |
 | Text layout modules (`skunicode`, `skshaper`, `skparagraph`) | Partial | Ruby API is available; native symbols may be absent depending on `libSkiaSharp` build |
 

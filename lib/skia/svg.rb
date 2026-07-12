@@ -162,15 +162,17 @@ module Skia
         width = parse_length(root_attributes['width']) || parse_view_box(root_attributes['viewBox'], 2)
         height = parse_length(root_attributes['height']) || parse_view_box(root_attributes['viewBox'], 3)
 
+        gradients = extract_gradients(source, width, height)
         path_nodes = extract_nodes(source)
 
-        new(width: width, height: height, paths: path_nodes)
+        new(width: width, height: height, paths: path_nodes, gradients: gradients)
       end
 
-      def initialize(width:, height:, paths:)
+      def initialize(width:, height:, paths:, gradients: {})
         @width = width&.to_f
         @height = height&.to_f
         @paths = paths
+        @gradients = gradients
       end
 
       def empty?
@@ -198,7 +200,7 @@ module Skia
         text_paint = override_paint || Paint.new
         unless override_paint
           text_paint.antialias = true
-          text_paint.color = node.fill || Color::BLACK
+          apply_fill(text_paint, node.fill || Color::BLACK)
         end
         canvas.draw_text(node.text, node.x || 0, node.y || 0, Font.new(nil, node.font_size || 16), text_paint)
       end
@@ -213,7 +215,7 @@ module Skia
           fill_paint = Paint.new
           fill_paint.antialias = true
           fill_paint.style = :fill
-          fill_paint.color = node.fill
+          apply_fill(fill_paint, node.fill)
           canvas.draw_path(path, fill_paint)
         end
 
@@ -233,6 +235,22 @@ module Skia
         default_paint.style = :fill
         default_paint.color = Color::BLACK
         canvas.draw_path(path, default_paint)
+      end
+
+      def apply_fill(paint, fill)
+        value = resolve_fill(fill)
+        if value.is_a?(Shader)
+          paint.shader = value
+        elsif value.is_a?(Color)
+          paint.color = value
+        end
+      end
+
+      def resolve_fill(fill)
+        return fill unless fill.is_a?(String)
+
+        match = fill.match(/\Aurl\(\s*#([^\s)]+)\s*\)\z/i)
+        match ? @gradients[match[1]] : nil
       end
 
       def self.parse_length(value)
@@ -274,6 +292,60 @@ module Skia
         extract_polygons(source, nodes)
         extract_text(source, nodes)
         nodes
+      end
+
+      def self.extract_gradients(source, width, height)
+        gradients = {}
+        source.scan(%r{<linearGradient\b([^>]*)>(.*?)</linearGradient>}im).each do |attribute_source, content|
+          attributes = parse_attributes(attribute_source)
+          colors, positions = gradient_stops(content)
+          next if attributes['id'].to_s.empty? || colors.length < 2
+
+          start_point = Point.new(gradient_length(attributes['x1'], width, 0), gradient_length(attributes['y1'], height, 0))
+          end_point = Point.new(gradient_length(attributes['x2'], width, width), gradient_length(attributes['y2'], height, 0))
+          gradients[attributes['id']] = Shader.linear_gradient(start_point, end_point, colors, positions)
+        end
+        source.scan(%r{<radialGradient\b([^>]*)>(.*?)</radialGradient>}im).each do |attribute_source, content|
+          attributes = parse_attributes(attribute_source)
+          colors, positions = gradient_stops(content)
+          next if attributes['id'].to_s.empty? || colors.length < 2
+
+          center = Point.new(gradient_length(attributes['cx'], width, width / 2.0),
+                             gradient_length(attributes['cy'], height, height / 2.0))
+          radius = gradient_length(attributes['r'], [width, height].min, [width, height].min / 2.0)
+          gradients[attributes['id']] = Shader.radial_gradient(center, radius, colors, positions)
+        end
+        gradients
+      end
+
+      def self.gradient_stops(source)
+        stops = source.scan(%r{<stop\b([^>]*)/?>}im).filter_map do |match|
+          attributes = parse_attributes(match.first.to_s)
+          style = attributes['style'].to_s.split(';').filter_map { |entry| entry.split(':', 2) if entry.include?(':') }.to_h
+          color = Svg.parse_color(attributes['stop-color'] || style['stop-color'])
+          next unless color
+
+          opacity = Float(attributes['stop-opacity'] || style['stop-opacity'] || 1)
+          offset = percentage(attributes['offset'] || 0)
+          [color.with_alpha((color.alpha * opacity.clamp(0, 1)).round), offset.clamp(0, 1)]
+        rescue ArgumentError
+          nil
+        end
+        [stops.map(&:first), stops.map(&:last)]
+      end
+
+      def self.gradient_length(value, extent, default)
+        return default.to_f if value.nil?
+        return percentage(value) * extent.to_f if value.to_s.include?('%')
+
+        Float(value)
+      rescue ArgumentError
+        default.to_f
+      end
+
+      def self.percentage(value)
+        source = value.to_s.strip
+        source.end_with?('%') ? Float(source.delete_suffix('%')) / 100.0 : Float(source)
       end
 
       def self.extract_rects(source, nodes)
@@ -364,9 +436,11 @@ module Skia
       end
 
       def self.styled_node(attributes, **values)
+        fill = Svg.parse_color(attributes['fill'])
+        fill ||= attributes['fill'] if attributes['fill'].to_s.match?(/\Aurl\(/i)
         PathNode.new(
           **values,
-          fill: Svg.parse_color(attributes['fill']),
+          fill: fill,
           stroke: Svg.parse_color(attributes['stroke']),
           stroke_width: parse_length(attributes['stroke-width'])
         )
