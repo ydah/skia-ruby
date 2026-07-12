@@ -165,13 +165,8 @@ module Skia
                       options[:fICCProfileDescription] = nil
                       Native.sk_webpencoder_encode(stream, pixmap, options)
                     else
-                      options = Native::SKPngEncoderOptions.new
-                      options[:fFilterFlags] = :all
-                      options[:fZLibLevel] = 6
-                      options[:fComments] = nil
-                      options[:fICCProfile] = nil
-                      options[:fICCProfileDescription] = nil
-                      Native.sk_pngencoder_encode(stream, pixmap, options)
+                      raise UnsupportedOperationError,
+                            "Unsupported image encoding: #{format}; available encoders are png, jpeg, and webp"
                     end
 
           raise EncodingError, "Failed to encode image as #{format}" unless success

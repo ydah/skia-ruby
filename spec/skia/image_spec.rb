@@ -56,6 +56,12 @@ RSpec.describe Skia::Image do
         File.delete(path) if File.exist?(path)
       end
     end
+
+    it 'rejects formats without a native encoder' do
+      expect { image.save('animation.gif') }.to raise_error(Skia::UnsupportedOperationError, /png, jpeg, and webp/)
+    ensure
+      File.delete('animation.gif') if File.exist?('animation.gif')
+    end
   end
 
   describe '#save_png' do
