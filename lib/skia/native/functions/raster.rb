@@ -70,6 +70,18 @@ module Skia
     attach_function :sk_jpegencoder_encode, [:pointer, :sk_pixmap_t, SKJpegEncoderOptions.ptr], :bool
     attach_function :sk_webpencoder_encode, [:pointer, :sk_pixmap_t, SKWebpEncoderOptions.ptr], :bool
 
+    # Codec
+    attach_function :sk_codec_new_from_data, [:sk_data_t], :sk_codec_t
+    attach_function :sk_codec_destroy, [:sk_codec_t], :void
+    attach_function :sk_codec_get_info, [:sk_codec_t, SKImageInfo.ptr], :void
+    attach_function :sk_codec_get_origin, [:sk_codec_t], :sk_encodedorigin_t
+    attach_function :sk_codec_get_encoded_format, [:sk_codec_t], :sk_encoded_image_format_t
+    attach_function :sk_codec_get_frame_count, [:sk_codec_t], :int
+    attach_function :sk_codec_get_repetition_count, [:sk_codec_t], :int
+    attach_function :sk_codec_get_frame_info_for_index, [:sk_codec_t, :int, SKCodecFrameInfo.ptr], :bool
+    attach_function :sk_codec_get_pixels,
+                    [:sk_codec_t, SKImageInfo.ptr, :pointer, :size_t, SKCodecOptions.ptr], :sk_codec_result_t
+
     # Data
     attach_function :sk_data_new_with_copy, %i[pointer size_t], :sk_data_t
     attach_function :sk_data_new_from_file, [:string], :sk_data_t

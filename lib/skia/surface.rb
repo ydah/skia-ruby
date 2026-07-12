@@ -110,7 +110,7 @@ module Skia
                   end
       raise Error, 'Failed to create image snapshot' if image_ptr.nil? || image_ptr.null?
 
-      Image.new(image_ptr)
+      Image.new(image_ptr, owner: @pixel_storage)
     end
 
     def peek_pixels

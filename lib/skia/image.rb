@@ -2,8 +2,8 @@
 
 module Skia
   class Image < Base
-    def initialize(ptr)
-      super(ptr, :sk_image_unref)
+    def initialize(ptr, owner: nil)
+      super(ptr, :sk_image_unref, owner: owner)
     end
 
     def self.from_file(path)

@@ -3,7 +3,7 @@
 module Skia
   class Bitmap < Base
     def initialize(ptr = nil)
-      super(ptr || Native.sk_bitmap_new, nil)
+      super(ptr || Native.sk_bitmap_new, :sk_bitmap_destructor)
       @pixel_storage = nil
     end
 
@@ -82,6 +82,7 @@ module Skia
       pixmap = Pixmap.new
       return nil unless Native.sk_bitmap_peek_pixels(@ptr, pixmap.ptr)
 
+      pixmap.send(:keep_alive, self)
       pixmap
     end
 
@@ -91,6 +92,7 @@ module Skia
       success = Native.sk_bitmap_extract_subset(subset.ptr, @ptr, irect.to_struct)
       return nil unless success
 
+      subset.instance_variable_set(:@owner, self)
       subset
     end
 
@@ -114,7 +116,7 @@ module Skia
       ptr = Native.sk_image_new_from_bitmap(@ptr)
       raise Error, 'Failed to create image from bitmap' if ptr.nil? || ptr.null?
 
-      Image.new(ptr)
+      Image.new(ptr, owner: self)
     end
 
     def reset

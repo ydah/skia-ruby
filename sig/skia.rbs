@@ -344,6 +344,31 @@ module Skia
     def save: (String path, ?format: Symbol?, ?quality: Integer) -> Image
   end
 
+  class Codec < Base
+    class FrameInfo
+      attr_accessor required_frame: Integer
+      attr_accessor duration: Integer
+      attr_accessor fully_received: bool
+      attr_accessor alpha_type: Symbol
+      attr_accessor has_alpha_within_bounds: bool
+      attr_accessor disposal_method: Symbol
+      attr_accessor blend: Symbol
+      attr_accessor rect: IRect
+    end
+
+    def self.from_file: (String path) -> Codec
+    def self.from_data: (Data | String data) -> Codec
+    def info: () -> ImageInfo
+    def origin: () -> Symbol
+    def format: () -> Symbol
+    def frame_count: () -> Integer
+    def repetition_count: () -> Integer
+    def frame_info: (Integer index) -> FrameInfo?
+    def frame_infos: () -> Array[FrameInfo?]
+    def decode_frame: (?Integer index, ?image_info: ImageInfo?, ?apply_orientation: bool) -> Image
+    def decode_frames: (?image_info: ImageInfo?, ?limit: Integer, ?apply_orientation: bool) -> Array[Image]
+  end
+
   class Pixmap < Base
     def self.from_pixels: (ImageInfo image_info, String | Array[Integer] pixels, ?row_bytes: Integer?) -> Pixmap
     def info: () -> ImageInfo

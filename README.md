@@ -31,6 +31,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 - `RuntimeEffect` (SkSL compile and shader creation)
 - `Skottie` (Lottie JSON animation load/seek/render)
 - Encoders (`PNG`, `JPEG`, `WEBP`)
+- `Codec` metadata, EXIF orientation, and frame decoding for animated GIF/WebP inputs
 - SVG canvas output and sampled image resize/scale helpers
 
 ### Ruby layer (current)

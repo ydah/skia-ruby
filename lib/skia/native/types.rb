@@ -29,6 +29,7 @@ module Skia
     typedef :pointer, :sk_vertices_t
     typedef :pointer, :sk_blender_t
     typedef :pointer, :sk_fontmgr_t
+    typedef :pointer, :sk_codec_t
     typedef :pointer, :sk_surfaceprops_t
     typedef :pointer, :sk_rrect_t
     typedef :pointer, :sk_textblob_t
@@ -208,6 +209,46 @@ module Skia
       :heif, 11
     ]
 
+    enum :sk_encodedorigin_t, [
+      :top_left,     1,
+      :top_right,    2,
+      :bottom_right, 3,
+      :bottom_left,  4,
+      :left_top,     5,
+      :right_top,    6,
+      :right_bottom, 7,
+      :left_bottom,  8
+    ]
+
+    enum :sk_codec_result_t, [
+      :success,            0,
+      :incomplete_input,   1,
+      :error_in_input,     2,
+      :invalid_conversion, 3,
+      :invalid_scale,      4,
+      :invalid_parameters, 5,
+      :invalid_input,      6,
+      :could_not_rewind,   7,
+      :internal_error,     8,
+      :unimplemented,      9
+    ]
+
+    enum :sk_codec_zero_initialized_t, [
+      :yes, 0,
+      :no,  1
+    ]
+
+    enum :sk_codecanimation_disposalmethod_t, [
+      :keep,                        1,
+      :restore_background_color,    2,
+      :restore_previous,            3
+    ]
+
+    enum :sk_codecanimation_blend_t, [
+      :src_over, 0,
+      :src,      1
+    ]
+
     enum :sk_shader_tilemode_t, [
       :clamp,  0,
       :repeat, 1,
@@ -349,6 +390,25 @@ module Skia
              :ssin, :float,
              :tx,   :float,
              :ty,   :float
+    end
+
+    class SKCodecFrameInfo < FFI::Struct
+      layout :requiredFrame,        :int32,
+             :duration,             :int32,
+             :fullyReceived,        :uint8,
+             :alphaType,            :sk_alphatype_t,
+             :hasAlphaWithinBounds, :uint8,
+             :disposalMethod,       :sk_codecanimation_disposalmethod_t,
+             :blend,                :sk_codecanimation_blend_t,
+             :frameRect,            SKIRect
+    end
+
+    class SKCodecOptions < FFI::Struct
+      layout :zeroInitialized, :sk_codec_zero_initialized_t,
+             :subset,          :pointer,
+             :frameIndex,      :int32,
+             :priorFrame,      :int32,
+             :maxDecodeMemory, :size_t
     end
 
     # sk_textblob_builder_runbuffer_t
