@@ -120,7 +120,7 @@ module Skia
     end
 
     def empty?
-      Native.sk_path_count_verbs(@ptr) == 0
+      Native.sk_path_count_verbs(@ptr).zero?
     end
 
     def count_points

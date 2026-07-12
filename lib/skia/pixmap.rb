@@ -12,9 +12,7 @@ module Skia
       bytes = pixels.is_a?(String) ? pixels.dup : pixels.pack('C*')
       row_bytes ||= info.min_row_bytes
 
-      if bytes.bytesize < row_bytes * info.height
-        raise ArgumentError, "pixel buffer is too small: #{bytes.bytesize} bytes"
-      end
+      raise ArgumentError, "pixel buffer is too small: #{bytes.bytesize} bytes" if bytes.bytesize < row_bytes * info.height
 
       storage = FFI::MemoryPointer.new(:uint8, bytes.bytesize)
       storage.write_bytes(bytes)
@@ -42,9 +40,7 @@ module Skia
     end
 
     def color_space=(value)
-      unless value.nil? || value.is_a?(ColorSpace)
-        raise ArgumentError, 'color_space must be a Skia::ColorSpace or nil'
-      end
+      raise ArgumentError, 'color_space must be a Skia::ColorSpace or nil' unless value.nil? || value.is_a?(ColorSpace)
 
       Native.sk_pixmap_set_colorspace(@ptr, value&.ptr)
     end

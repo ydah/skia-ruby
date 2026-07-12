@@ -71,7 +71,7 @@ RSpec.describe Skia::Font do
 
       expect(glyphs).to be_a(Array)
       expect(glyphs).not_to be_empty
-      expect(glyphs.all? { |glyph| glyph.is_a?(Integer) }).to be true
+      expect(glyphs.all?(Integer)).to be true
     end
   end
 end

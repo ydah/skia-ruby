@@ -42,10 +42,10 @@ module Skia
         Native.optional_attach_function :sk_shaper_delete, [:pointer], :void
         Native.optional_attach_function :sk_paragraph_builder_new, [:pointer], :pointer
         Native.optional_attach_function :sk_paragraph_builder_delete, [:pointer], :void
-        Native.optional_attach_function :sk_paragraph_builder_add_text, [:pointer, :pointer, :size_t], :void
+        Native.optional_attach_function :sk_paragraph_builder_add_text, %i[pointer pointer size_t], :void
         Native.optional_attach_function :sk_paragraph_builder_build, [:pointer], :pointer
-        Native.optional_attach_function :sk_paragraph_layout, [:pointer, :float], :void
-        Native.optional_attach_function :sk_paragraph_paint, [:pointer, :sk_canvas_t, :float, :float], :void
+        Native.optional_attach_function :sk_paragraph_layout, %i[pointer float], :void
+        Native.optional_attach_function :sk_paragraph_paint, %i[pointer sk_canvas_t float float], :void
         Native.optional_attach_function :sk_paragraph_unref, [:pointer], :void
 
         @native_symbols_registered = true
@@ -125,7 +125,7 @@ module Skia
       end
 
       def resolved_line_height
-        return @line_height if @line_height && @line_height.positive?
+        return @line_height if @line_height&.positive?
 
         metrics = @font.metrics
         natural = (metrics.descent - metrics.ascent) + metrics.leading

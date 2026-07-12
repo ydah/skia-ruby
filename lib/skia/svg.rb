@@ -76,8 +76,6 @@ module Skia
           Color.from_hex(source)
         when /\A#[0-9a-f]{8}\z/
           Color.from_hex(source)
-        else
-          nil
         end
       end
 
@@ -86,8 +84,8 @@ module Skia
       def register_native_symbols!
         return if @native_symbols_registered
 
-        Native.optional_attach_function :sk_path_parse_svg_string, [:sk_path_t, :string], :bool
-        Native.optional_attach_function :sk_path_to_svg_string, [:sk_path_t, :sk_string_t], :void
+        Native.optional_attach_function :sk_path_parse_svg_string, %i[sk_path_t string], :bool
+        Native.optional_attach_function :sk_path_to_svg_string, %i[sk_path_t sk_string_t], :void
         Native.optional_attach_function :sk_svgcanvas_create_with_stream, [Native::SKRect.ptr, :pointer], :sk_canvas_t
 
         @native_symbols_registered = true
@@ -127,7 +125,7 @@ module Skia
         height = parse_length(root_attributes['height']) || parse_view_box(root_attributes['viewBox'], 3)
 
         path_nodes = []
-        source.scan(/<path\b([^>]*)\/?>/im).each do |match|
+        source.scan(%r{<path\b([^>]*)/?>}im).each do |match|
           attributes = parse_attributes(match.first.to_s)
           path_data = attributes['d']
           next if path_data.nil? || path_data.strip.empty?
@@ -219,7 +217,7 @@ module Skia
 
       def self.parse_attributes(source)
         attributes = {}
-        source.to_s.scan(/([:\w-]+)\s*=\s*(\"([^\"]*)\"|'([^']*)')/).each do |name, _quoted, double_quoted, single_quoted|
+        source.to_s.scan(/([:\w-]+)\s*=\s*("([^"]*)"|'([^']*)')/).each do |name, _quoted, double_quoted, single_quoted|
           attributes[name] = double_quoted || single_quoted || ''
         end
         attributes

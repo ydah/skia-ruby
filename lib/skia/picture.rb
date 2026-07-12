@@ -9,14 +9,14 @@ module Skia
     def self.from_data(data)
       data_obj = data.is_a?(Data) ? data : Data.new(data)
       ptr = Native.sk_picture_deserialize_from_data(data_obj.ptr)
-      raise Error, "Failed to deserialize picture" if ptr.nil? || ptr.null?
+      raise Error, 'Failed to deserialize picture' if ptr.nil? || ptr.null?
 
       new(ptr)
     end
 
-    def self.record(bounds, &block)
+    def self.record(bounds, &)
       recorder = PictureRecorder.new
-      recorder.begin_recording(bounds, &block)
+      recorder.begin_recording(bounds, &)
     end
 
     def unique_id
@@ -36,7 +36,7 @@ module Skia
 
     def serialize
       data_ptr = Native.sk_picture_serialize_to_data(@ptr)
-      raise Error, "Failed to serialize picture" if data_ptr.nil? || data_ptr.null?
+      raise Error, 'Failed to serialize picture' if data_ptr.nil? || data_ptr.null?
 
       Data.new(data_ptr)
     end
@@ -64,19 +64,17 @@ module Skia
   class PictureRecorder
     def initialize
       @ptr = Native.sk_picture_recorder_new
-      raise Error, "Failed to create picture recorder" if @ptr.nil? || @ptr.null?
+      raise Error, 'Failed to create picture recorder' if @ptr.nil? || @ptr.null?
 
       @recording = false
     end
 
-    def ptr
-      @ptr
-    end
+    attr_reader :ptr
 
     def begin_recording(bounds)
       bounds_struct = bounds.to_struct
       canvas_ptr = Native.sk_picture_recorder_begin_recording(@ptr, bounds_struct)
-      raise Error, "Failed to begin recording" if canvas_ptr.nil? || canvas_ptr.null?
+      raise Error, 'Failed to begin recording' if canvas_ptr.nil? || canvas_ptr.null?
 
       @recording = true
       canvas = Canvas.new(canvas_ptr)
@@ -103,7 +101,7 @@ module Skia
 
       ptr = Native.sk_picture_recorder_end_recording(@ptr)
       @recording = false
-      raise Error, "Failed to end recording" if ptr.nil? || ptr.null?
+      raise Error, 'Failed to end recording' if ptr.nil? || ptr.null?
 
       Picture.new(ptr)
     end

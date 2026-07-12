@@ -13,9 +13,7 @@ module Skia
     end
 
     def self.dash(intervals, phase: 0.0)
-      unless intervals.is_a?(Array) && intervals.length >= 2
-        raise ArgumentError, 'intervals must be an array with at least 2 elements'
-      end
+      raise ArgumentError, 'intervals must be an array with at least 2 elements' unless intervals.is_a?(Array) && intervals.length >= 2
 
       interval_values = intervals.map(&:to_f)
       intervals_ptr = FFI::MemoryPointer.new(:float, interval_values.length)

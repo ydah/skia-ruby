@@ -1,5 +1,15 @@
 # frozen_string_literal: true
 
+if ENV['COVERAGE'] == 'true'
+  require 'simplecov'
+  SimpleCov.start do
+    enable_coverage :branch
+    minimum_coverage line: 80, branch: 40
+    add_filter '/spec/'
+    track_files 'lib/**/*.rb'
+  end
+end
+
 require 'skia'
 
 RSpec.configure do |config|

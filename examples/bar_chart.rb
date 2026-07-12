@@ -60,7 +60,7 @@ surface.draw do |canvas|
   ]
 
   data.each_with_index do |(name, value), i|
-    x = MARGIN[:left] + (i * bar_spacing) + (bar_spacing - bar_width) / 2
+    x = MARGIN[:left] + (i * bar_spacing) + ((bar_spacing - bar_width) / 2)
     bar_height = (value.to_f / max_value) * CHART_HEIGHT
     y = MARGIN[:top] + CHART_HEIGHT - bar_height
 
@@ -76,12 +76,12 @@ surface.draw do |canvas|
     paint.style = :fill
     paint.color = Skia::Color::BLACK
     text_width, = font_axis.measure_text(name)
-    label_x = x + (bar_width - text_width) / 2
+    label_x = x + ((bar_width - text_width) / 2)
     canvas.draw_text(name, label_x, HEIGHT - MARGIN[:bottom] + 20, font_axis, paint)
 
     value_text = "#{value}%"
     value_width, = font_axis.measure_text(value_text)
-    canvas.draw_text(value_text, x + (bar_width - value_width) / 2, y - 8, font_axis, paint)
+    canvas.draw_text(value_text, x + ((bar_width - value_width) / 2), y - 8, font_axis, paint)
   end
 end
 

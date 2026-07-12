@@ -1,0 +1,74 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  SuggestExtensions: false
+  UseCache: false
+  Exclude:
+    - 'skiasharp-extract/**/*'
+    - 'vendor/**/*'
+
+Layout/LineLength:
+  Max: 140
+
+Metrics/AbcSize:
+  Max: 90
+
+Metrics/ClassLength:
+  Max: 300
+
+Metrics/MethodLength:
+  Max: 80
+
+Metrics/ModuleLength:
+  Max: 300
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Lint/DuplicateBranch:
+  Enabled: false
+
+Lint/EmptyBlock:
+  Exclude:
+    - 'spec/**/*'
+
+Lint/IneffectiveAccessModifier:
+  Enabled: false
+
+Lint/NonAtomicFileOperation:
+  Exclude:
+    - 'spec/**/*'
+
+Lint/ScriptPermission:
+  Exclude:
+    - 'examples/**/*'
+
+Lint/FloatComparison:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+Naming/AccessorMethodName:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'examples/**/*'
+    - 'spec/**/*'
+    - '*.gemspec'

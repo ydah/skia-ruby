@@ -10,7 +10,7 @@ def generate_avatar(name, size: 200, output: nil)
   hue = hash % 360
 
   c = 0.6
-  x = c * (1 - ((hue / 60.0) % 2 - 1).abs)
+  x = c * (1 - (((hue / 60.0) % 2) - 1).abs)
   m = 0.2
 
   r, g, b = case hue / 60
@@ -44,10 +44,10 @@ def generate_avatar(name, size: 200, output: nil)
     font = Skia::Font.new(nil, font_size)
     paint.color = Skia::Color::WHITE
 
-    text_width, text_bounds = font.measure_text(initials)
+    text_width, = font.measure_text(initials)
     metrics = font.metrics
     x = (size - text_width) / 2.0
-    y = (size / 2.0) - (metrics.ascent + metrics.descent) / 2.0
+    y = (size / 2.0) - ((metrics.ascent + metrics.descent) / 2.0)
 
     canvas.draw_text(initials, x, y, font, paint)
   end

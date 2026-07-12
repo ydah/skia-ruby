@@ -3,6 +3,7 @@
 module Skia
   module Native
     extend FFI::Library
+
     @optional_functions = {}
 
     class << self
@@ -51,7 +52,7 @@ module Skia
 
       def prebuilt_candidates(gem_root, platform_key, lib_name)
         [
-          normalize_library_path(ENV['SKIA_PREBUILT_DIR'], lib_name),
+          normalize_library_path(ENV.fetch('SKIA_PREBUILT_DIR', nil), lib_name),
           File.join(user_native_dir(platform_key), lib_name),
           File.join(gem_root, 'vendor', 'native', platform_key, lib_name),
           File.join(gem_root, 'vendor', 'native', lib_name)
@@ -62,7 +63,7 @@ module Skia
         lib_name, fallbacks, platform_key = platform_library_names
         gem_root = File.expand_path('../..', __dir__)
         source = ENV.fetch('SKIA_NATIVE_SOURCE', 'auto').downcase
-        explicit_path = normalize_library_path(ENV['SKIA_LIBRARY_PATH'], lib_name)
+        explicit_path = normalize_library_path(ENV.fetch('SKIA_LIBRARY_PATH', nil), lib_name)
 
         search_paths =
           case source

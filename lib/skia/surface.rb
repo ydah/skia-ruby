@@ -12,16 +12,16 @@ module Skia
     end
 
     def self.make_raster(width = nil, height = nil, image_info: nil, color_type: :rgba_8888, alpha_type: :premul,
-                         color_space: nil, &block)
+                         color_space: nil, &)
       info = build_image_info(width, height, image_info, color_type: color_type, alpha_type: alpha_type, color_space: color_space)
       ptr = Native.sk_surface_new_raster(info.to_struct, 0, nil)
       raise Error, 'Failed to create raster surface' if ptr.nil? || ptr.null?
 
-      yield_surface(new(ptr, info.width, info.height), &block)
+      yield_surface(new(ptr, info.width, info.height), &)
     end
 
     def self.make_raster_direct(width = nil, height = nil, pixels:, row_bytes:, image_info: nil, color_type: :rgba_8888,
-                                alpha_type: :premul, color_space: nil, &block)
+                                alpha_type: :premul, color_space: nil, &)
       info = build_image_info(width, height, image_info, color_type: color_type, alpha_type: alpha_type, color_space: color_space)
       pixel_ptr, storage = coerce_pixels(pixels)
       ptr = Native.sk_surface_new_raster_direct(info.to_struct, pixel_ptr, row_bytes, nil, nil, nil)
@@ -29,19 +29,19 @@ module Skia
 
       surface = new(ptr, info.width, info.height)
       surface.instance_variable_set(:@pixel_storage, storage)
-      yield_surface(surface, &block)
+      yield_surface(surface, &)
     end
 
-    def self.make_null(width, height, &block)
+    def self.make_null(width, height, &)
       ptr = Native.sk_surface_new_null(width.to_i, height.to_i)
       raise Error, 'Failed to create null surface' if ptr.nil? || ptr.null?
 
-      yield_surface(new(ptr, width, height), &block)
+      yield_surface(new(ptr, width, height), &)
     end
 
     def self.make_render_target(context:, width: nil, height: nil, image_info: nil, budgeted: true, sample_count: 0,
                                 origin: :top_left, create_mips: false, color_type: :rgba_8888, alpha_type: :premul,
-                                color_space: nil, &block)
+                                color_space: nil, &)
       ensure_native_function!(:sk_surface_new_render_target, '.make_render_target')
       info = build_image_info(width, height, image_info, color_type: color_type, alpha_type: alpha_type, color_space: color_space)
       ptr = Native.sk_surface_new_render_target(
@@ -55,11 +55,11 @@ module Skia
       )
       raise Error, 'Failed to create render target surface' if ptr.nil? || ptr.null?
 
-      yield_surface(new(ptr, info.width, info.height), &block)
+      yield_surface(new(ptr, info.width, info.height), &)
     end
 
     def self.make_backend_render_target(context:, backend_render_target:, width:, height:, origin: :top_left,
-                                        color_type: :rgba_8888, color_space: nil, &block)
+                                        color_type: :rgba_8888, color_space: nil, &)
       ensure_native_function!(:sk_surface_new_backend_render_target, '.make_backend_render_target')
       ptr = Native.sk_surface_new_backend_render_target(
         coerce_pointer(context),
@@ -71,11 +71,11 @@ module Skia
       )
       raise Error, 'Failed to create backend render target surface' if ptr.nil? || ptr.null?
 
-      yield_surface(new(ptr, width, height), &block)
+      yield_surface(new(ptr, width, height), &)
     end
 
     def self.make_backend_texture(context:, backend_texture:, width:, height:, sample_count: 0, origin: :top_left,
-                                  color_type: :rgba_8888, color_space: nil, &block)
+                                  color_type: :rgba_8888, color_space: nil, &)
       ensure_native_function!(:sk_surface_new_backend_texture, '.make_backend_texture')
       ptr = Native.sk_surface_new_backend_texture(
         coerce_pointer(context),
@@ -88,7 +88,7 @@ module Skia
       )
       raise Error, 'Failed to create backend texture surface' if ptr.nil? || ptr.null?
 
-      yield_surface(new(ptr, width, height), &block)
+      yield_surface(new(ptr, width, height), &)
     end
 
     def canvas
@@ -123,11 +123,8 @@ module Skia
 
     def read_pixels(width: @width, height: @height, src_x: 0, src_y: 0, row_bytes: nil, image_info: nil, color_type: :rgba_8888,
                     alpha_type: :premul, color_space: nil)
-      info = if image_info
-               image_info
-             else
-               ImageInfo.new(width: width, height: height, color_type: color_type, alpha_type: alpha_type, color_space: color_space)
-             end
+      info = image_info || ImageInfo.new(width: width, height: height, color_type: color_type, alpha_type: alpha_type,
+                                         color_space: color_space)
       row_bytes ||= info.min_row_bytes
       byte_size = row_bytes * info.height
       pixels = FFI::MemoryPointer.new(:uint8, byte_size)

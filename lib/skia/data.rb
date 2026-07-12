@@ -34,7 +34,7 @@ module Skia
     end
 
     def empty?
-      size == 0
+      size.zero?
     end
 
     def to_s

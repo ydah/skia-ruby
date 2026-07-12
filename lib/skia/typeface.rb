@@ -130,7 +130,7 @@ module Skia
           min_value: self.class.fixed_16_16_to_float(min_raw),
           default_value: self.class.fixed_16_16_to_float(default_raw),
           max_value: self.class.fixed_16_16_to_float(max_raw),
-          hidden: (flags & 0x0001) != 0,
+          hidden: flags.anybits?(0x0001),
           name_id: name_id
         }
       end

@@ -21,9 +21,9 @@ module Skia
     attach_function :sk_font_set_size, %i[sk_font_t float], :void
     attach_function :sk_font_get_size, [:sk_font_t], :float
     attach_function :sk_font_get_metrics, [:sk_font_t, SKFontMetrics.ptr], :float
-    attach_function :sk_font_get_xpos, [:sk_font_t, :pointer, :int, :pointer, :float], :void
+    attach_function :sk_font_get_xpos, %i[sk_font_t pointer int pointer float], :void
     attach_function :sk_font_text_to_glyphs,
-                    [:sk_font_t, :pointer, :size_t, :sk_text_encoding_t, :pointer, :int], :int
+                    %i[sk_font_t pointer size_t sk_text_encoding_t pointer int], :int
     attach_function :sk_font_measure_text,
                     [:sk_font_t, :pointer, :size_t, :sk_text_encoding_t, SKRect.ptr, :sk_paint_t], :float
 
@@ -48,9 +48,9 @@ module Skia
     attach_function :sk_typeface_get_units_per_em, [:sk_typeface_t], :int
     attach_function :sk_typeface_count_glyphs, [:sk_typeface_t], :int
     attach_function :sk_typeface_count_tables, [:sk_typeface_t], :int
-    attach_function :sk_typeface_get_table_tags, [:sk_typeface_t, :pointer], :int
-    attach_function :sk_typeface_get_table_size, [:sk_typeface_t, :uint32], :size_t
-    attach_function :sk_typeface_get_table_data, [:sk_typeface_t, :uint32, :size_t, :size_t, :pointer], :size_t
-    attach_function :sk_typeface_copy_table_data, [:sk_typeface_t, :uint32], :sk_data_t
+    attach_function :sk_typeface_get_table_tags, %i[sk_typeface_t pointer], :int
+    attach_function :sk_typeface_get_table_size, %i[sk_typeface_t uint32], :size_t
+    attach_function :sk_typeface_get_table_data, %i[sk_typeface_t uint32 size_t size_t pointer], :size_t
+    attach_function :sk_typeface_copy_table_data, %i[sk_typeface_t uint32], :sk_data_t
   end
 end

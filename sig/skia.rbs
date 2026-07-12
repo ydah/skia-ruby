@@ -1,0 +1,299 @@
+module Skia
+  VERSION: String
+
+  class Error < StandardError
+  end
+
+  class NullPointerError < Error
+  end
+
+  class ClosedError < Error
+  end
+
+  class EncodingError < Error
+  end
+
+  class DecodingError < Error
+  end
+
+  class FileNotFoundError < Error
+  end
+
+  class UnsupportedOperationError < Error
+  end
+
+  class Base
+    def initialize: (untyped ptr, ?Symbol? release_method, ?owner: untyped) -> void
+    def ptr: () -> untyped
+    def to_ptr: () -> untyped
+    def null?: () -> bool
+    def closed?: () -> bool
+    def close: () -> self
+  end
+
+  class Color
+    TRANSPARENT: Color
+    BLACK: Color
+    WHITE: Color
+    RED: Color
+    GREEN: Color
+    BLUE: Color
+    YELLOW: Color
+    CYAN: Color
+    MAGENTA: Color
+
+    def initialize: (Integer value) -> void
+    def self.from_argb: (Integer alpha, Integer red, Integer green, Integer blue) -> Color
+    def self.from_rgb: (Integer red, Integer green, Integer blue) -> Color
+    def self.from_hex: (String value) -> Color
+    def to_i: () -> Integer
+    def to_hex: () -> String
+  end
+
+  class Point
+    attr_reader x: Numeric
+    attr_reader y: Numeric
+
+    def initialize: (Numeric x, Numeric y) -> void
+    def +: (Point other) -> Point
+    def -: (Point other) -> Point
+  end
+
+  class Rect
+    attr_reader left: Numeric
+    attr_reader top: Numeric
+    attr_reader right: Numeric
+    attr_reader bottom: Numeric
+
+    def initialize: (Numeric left, Numeric top, Numeric right, Numeric bottom) -> void
+    def self.from_xywh: (Numeric x, Numeric y, Numeric width, Numeric height) -> Rect
+    def self.from_wh: (Numeric width, Numeric height) -> Rect
+    def width: () -> Numeric
+    def height: () -> Numeric
+    def empty?: () -> bool
+  end
+
+  class IRect < Rect
+    def self.from_xywh: (Numeric x, Numeric y, Numeric width, Numeric height) -> IRect
+  end
+
+  class RRect < Base
+    def self.from_rect_xy: (Rect rect, Numeric radius_x, Numeric radius_y) -> RRect
+    def self.from_rect: (Rect rect) -> RRect
+    def rect: () -> Rect
+  end
+
+  class Matrix
+    def self.identity: () -> Matrix
+    def self.translation: (Numeric x, Numeric y) -> Matrix
+    def self.scale: (Numeric x, Numeric y) -> Matrix
+    def self.rotation: (Numeric degrees) -> Matrix
+  end
+
+  class ImageInfo
+    attr_reader width: Integer
+    attr_reader height: Integer
+    attr_reader color_type: Symbol
+    attr_reader alpha_type: Symbol
+
+    def initialize: (width: Integer, height: Integer, ?color_type: Symbol, ?alpha_type: Symbol, ?color_space: ColorSpace?) -> void
+    def min_row_bytes: () -> Integer
+    def compute_byte_size: (Integer row_bytes) -> Integer
+  end
+
+  class ColorSpace < Base
+    def self.srgb: () -> ColorSpace
+    def self.srgb_linear: () -> ColorSpace
+    def srgb?: () -> bool
+    def linear_gamma?: () -> bool
+  end
+
+  class Surface < Base
+    attr_reader width: Integer
+    attr_reader height: Integer
+
+    def self.make_raster: (?Integer? width, ?Integer? height, ?image_info: ImageInfo?, ?color_type: Symbol, ?alpha_type: Symbol, ?color_space: ColorSpace?) -> Surface
+                        | (?Integer? width, ?Integer? height, ?image_info: ImageInfo?, ?color_type: Symbol, ?alpha_type: Symbol, ?color_space: ColorSpace?) { (Surface) -> untyped } -> untyped
+    def self.make_raster_direct: (?Integer? width, ?Integer? height, pixels: String | untyped, row_bytes: Integer, ?image_info: ImageInfo?, ?color_type: Symbol, ?alpha_type: Symbol, ?color_space: ColorSpace?) -> Surface
+    def self.make_null: (Integer width, Integer height) -> Surface
+    def canvas: () -> Canvas
+    def snapshot: (?crop: Rect?) -> Image
+    def peek_pixels: () -> Pixmap?
+    def read_pixels: (**untyped options) -> String
+    def draw: () { (Canvas) -> void } -> Surface
+    def encode: (?Symbol format, ?Integer quality) -> Data
+    def save: (String path, ?format: Symbol?, ?quality: Integer) -> Surface
+    def save_png: (String path, ?Integer quality) -> Surface
+    def save_jpeg: (String path, ?Integer quality) -> Surface
+    def save_webp: (String path, ?Integer quality) -> Surface
+  end
+
+  class Canvas < Base
+    def save: () -> Integer
+    def save_layer: (?Rect? bounds, ?Paint? paint) -> Integer
+    def restore: () -> void
+    def restore_to_count: (Integer count) -> void
+    def save_count: () -> Integer
+    def translate: (Numeric dx, Numeric dy) -> Canvas
+    def scale: (Numeric sx, ?Numeric sy) -> Canvas
+    def rotate: (Numeric degrees, ?Numeric? px, ?Numeric? py) -> Canvas
+    def rotate_radians: (Numeric radians) -> Canvas
+    def skew: (Numeric sx, Numeric sy) -> Canvas
+    def concat: (Matrix matrix) -> Canvas
+    def matrix: () -> Matrix
+    def matrix=: (Matrix matrix) -> Matrix
+    def reset_matrix: () -> Canvas
+    def clip_rect: (Rect rect, ?Symbol operation, ?antialias: bool) -> Canvas
+    def clip_path: (Path path, ?Symbol operation, ?antialias: bool) -> Canvas
+    def clip_rrect: (RRect rect, ?Symbol operation, ?antialias: bool) -> Canvas
+    def clear: (?(Color | Integer)) -> Canvas
+    def draw_color: ((Color | Integer), ?Symbol blend_mode) -> Canvas
+    def draw_paint: (Paint paint) -> Canvas
+    def draw_rect: (Rect rect, Paint paint) -> Canvas
+    def draw_rrect: (RRect rect, Paint paint) -> Canvas
+    def draw_round_rect: (Rect rect, Numeric radius, Paint paint) -> Canvas
+    def draw_arc: (Rect oval, Numeric start_angle, Numeric sweep_angle, bool use_center, Paint paint) -> Canvas
+    def draw_circle: (Numeric x, Numeric y, Numeric radius, Paint paint) -> Canvas
+    def draw_oval: (Rect rect, Paint paint) -> Canvas
+    def draw_path: (Path path, Paint paint) -> Canvas
+    def draw_line: (Numeric x1, Numeric y1, Numeric x2, Numeric y2, Paint paint) -> Canvas
+    def draw_point: (Numeric x, Numeric y, Paint paint) -> Canvas
+    def draw_points: (Array[Point | [Numeric, Numeric]] points, Paint paint, ?mode: Symbol) -> Canvas
+    def draw_image: (Image image, Numeric x, Numeric y, ?Paint? paint) -> Canvas
+    def draw_image_rect: (Image image, Rect? source, Rect destination, ?Paint? paint) -> Canvas
+    def draw_text: (String text, Numeric x, Numeric y, Font font, Paint paint) -> Canvas
+    def with_save: () { (Canvas) -> untyped } -> untyped
+    def with_save_layer: (?Rect? bounds, ?Paint? paint) { (Canvas) -> untyped } -> untyped
+  end
+
+  class Paint < Base
+    def initialize: (?untyped ptr) -> void
+    def antialias?: () -> bool
+    def antialias=: (bool value) -> bool
+    def color: () -> Color
+    def color=: ((Color | Integer) value) -> (Color | Integer)
+    def style: () -> Symbol
+    def style=: (Symbol value) -> Symbol
+    def stroke_width: () -> Float
+    def stroke_width=: (Numeric value) -> Numeric
+    def stroke_cap: () -> Symbol
+    def stroke_cap=: (Symbol value) -> Symbol
+    def stroke_join: () -> Symbol
+    def stroke_join=: (Symbol value) -> Symbol
+    def stroke_miter: () -> Float
+    def stroke_miter=: (Numeric value) -> Numeric
+    def blend_mode: () -> Symbol
+    def blend_mode=: (Symbol value) -> Symbol
+    def shader: () -> Shader?
+    def shader=: (Shader? value) -> Shader?
+    def mask_filter: () -> MaskFilter?
+    def mask_filter=: (MaskFilter? value) -> MaskFilter?
+    def color_filter: () -> ColorFilter?
+    def color_filter=: (ColorFilter? value) -> ColorFilter?
+    def image_filter: () -> ImageFilter?
+    def image_filter=: (ImageFilter? value) -> ImageFilter?
+    def path_effect: () -> PathEffect?
+    def path_effect=: (PathEffect? value) -> PathEffect?
+    def clone: () -> Paint
+    def reset: () -> Paint
+    def with: (**untyped options) -> Paint
+  end
+
+  class Path < Base
+    def initialize: (?untyped ptr) -> void
+    def self.build: () ?{ () -> void } -> Path
+    def move_to: (Numeric x, Numeric y) -> Path
+    def line_to: (Numeric x, Numeric y) -> Path
+    def quad_to: (Numeric x1, Numeric y1, Numeric x2, Numeric y2) -> Path
+    def conic_to: (Numeric x1, Numeric y1, Numeric x2, Numeric y2, Numeric weight) -> Path
+    def cubic_to: (Numeric x1, Numeric y1, Numeric x2, Numeric y2, Numeric x3, Numeric y3) -> Path
+    def close: () -> Path
+    def add_rect: (Rect rect, ?Symbol direction) -> Path
+    def add_rrect: (RRect rect, ?Symbol direction) -> Path
+    def add_oval: (Rect rect, ?Symbol direction) -> Path
+    def add_circle: (Numeric x, Numeric y, Numeric radius, ?Symbol direction) -> Path
+    def add_path: (Path other, ?extend_path: bool) -> Path
+    def fill_type: () -> Symbol
+    def fill_type=: (Symbol value) -> Symbol
+    def bounds: () -> Rect
+    def empty?: () -> bool
+    def count_points: () -> Integer
+    def approximate_length: (?force_closed: bool, ?res_scale: Numeric) -> Float
+    def contains?: (Numeric x, Numeric y) -> bool
+    def transform: (Matrix matrix) -> Path
+    def clone: () -> Path
+    def reverse: () -> Path
+    def reset: () -> Path
+  end
+
+  class Data < Base
+    def initialize: ((String | untyped) bytes) -> void
+    def self.from_file: (String path) -> Data
+    def self.from_bytes: (String bytes) -> Data
+    def size: () -> Integer
+    def empty?: () -> bool
+    def to_s: () -> String
+    def to_bytes: () -> String
+  end
+
+  class Image < Base
+    def self.from_file: (String path) -> Image
+    def self.from_data: ((Data | String) data) -> Image
+    def self.from_bitmap: (Bitmap bitmap) -> Image
+    def width: () -> Integer
+    def height: () -> Integer
+    def unique_id: () -> Integer
+    def color_type: () -> Symbol
+    def alpha_type: () -> Symbol
+    def color_space: () -> ColorSpace
+    def encoded_data: () -> Data
+    def make_shader: (?tile_x: Symbol, ?tile_y: Symbol, ?matrix: Matrix?) -> Shader
+    def subset: (IRect rect) -> Image?
+    def read_pixels: (**untyped options) -> String
+    def peek_pixels: () -> Pixmap?
+    def encode: (?Symbol format, ?Integer quality) -> Data
+    def save: (String path, ?format: Symbol?, ?quality: Integer) -> Image
+  end
+
+  class Pixmap < Base
+    def self.from_pixels: (ImageInfo image_info, String | Array[Integer] pixels, ?row_bytes: Integer?) -> Pixmap
+    def info: () -> ImageInfo
+    def row_bytes: () -> Integer
+    def pixel_color: (Integer x, Integer y) -> Color
+    def opaque?: () -> bool
+    def read_pixels: (ImageInfo info, ?src_x: Integer, ?src_y: Integer, ?row_bytes: Integer?) -> String
+    def extract_subset: (IRect rect) -> Pixmap?
+    def reset: () -> Pixmap
+  end
+
+  class Bitmap < Base
+  end
+
+  class Shader < Base
+    def self.linear_gradient: (Point start_point, Point end_point, Array[Color | Integer] colors, ?Array[Numeric]? positions, ?tile_mode: Symbol, ?matrix: Matrix?) -> Shader
+    def self.radial_gradient: (Point center, Numeric radius, Array[Color | Integer] colors, ?Array[Numeric]? positions, ?tile_mode: Symbol, ?matrix: Matrix?) -> Shader
+  end
+
+  class MaskFilter < Base
+    def self.blur: (?Symbol style, sigma: Numeric, ?respect_ctm: bool?) -> MaskFilter
+  end
+
+  class ColorFilter < Base
+    def self.mode: ((Color | Integer) color, ?Symbol blend_mode) -> ColorFilter
+  end
+
+  class ImageFilter < Base
+    def self.blur: (Numeric sigma_x, Numeric sigma_y, ?tile_mode: Symbol, ?input: ImageFilter?, ?crop_rect: Rect?) -> ImageFilter
+  end
+
+  class PathEffect < Base
+    def self.dash: (Array[Numeric] intervals, ?phase: Numeric) -> PathEffect
+  end
+
+  class Typeface < Base
+  end
+
+  class Font < Base
+    def initialize: (?Typeface? typeface, ?Numeric size, ?Numeric scale_x, ?Numeric skew_x) -> void
+  end
+end

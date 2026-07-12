@@ -27,12 +27,12 @@ def draw_circular_progress(canvas, cx, cy, radius, progress, label, color)
   font_value = Skia::Font.new(nil, radius * 0.5)
   value_text = "#{progress.to_i}%"
   text_width, = font_value.measure_text(value_text)
-  canvas.draw_text(value_text, cx - text_width / 2, cy + radius * 0.15, font_value, paint)
+  canvas.draw_text(value_text, cx - (text_width / 2), cy + (radius * 0.15), font_value, paint)
 
   font_label = Skia::Font.new(nil, radius * 0.25)
   paint.color = Skia::Color.rgb(120, 120, 120)
   label_width, = font_label.measure_text(label)
-  canvas.draw_text(label, cx - label_width / 2, cy + radius + 25, font_label, paint)
+  canvas.draw_text(label, cx - (label_width / 2), cy + radius + 25, font_label, paint)
 end
 
 def draw_linear_progress(canvas, x, y, width, height, progress, label, color)

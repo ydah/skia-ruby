@@ -41,10 +41,10 @@ module Skia
         new(
           scale_x: cos,
           skew_x: -sin,
-          trans_x: px - px * cos + py * sin,
+          trans_x: px - (px * cos) + (py * sin),
           skew_y: sin,
           scale_y: cos,
-          trans_y: py - px * sin - py * cos
+          trans_y: py - (px * sin) - (py * cos)
         )
       end
     end
@@ -120,21 +120,21 @@ module Skia
 
     def *(other)
       self.class.new(
-        scale_x: @scale_x * other.scale_x + @skew_x * other.skew_y,
-        skew_x: @scale_x * other.skew_x + @skew_x * other.scale_y,
-        trans_x: @scale_x * other.trans_x + @skew_x * other.trans_y + @trans_x,
-        skew_y: @skew_y * other.scale_x + @scale_y * other.skew_y,
-        scale_y: @skew_y * other.skew_x + @scale_y * other.scale_y,
-        trans_y: @skew_y * other.trans_x + @scale_y * other.trans_y + @trans_y,
-        persp0: @persp0 * other.scale_x + @persp1 * other.skew_y + @persp2 * other.persp0,
-        persp1: @persp0 * other.skew_x + @persp1 * other.scale_y + @persp2 * other.persp1,
-        persp2: @persp0 * other.trans_x + @persp1 * other.trans_y + @persp2 * other.persp2
+        scale_x: (@scale_x * other.scale_x) + (@skew_x * other.skew_y),
+        skew_x: (@scale_x * other.skew_x) + (@skew_x * other.scale_y),
+        trans_x: (@scale_x * other.trans_x) + (@skew_x * other.trans_y) + @trans_x,
+        skew_y: (@skew_y * other.scale_x) + (@scale_y * other.skew_y),
+        scale_y: (@skew_y * other.skew_x) + (@scale_y * other.scale_y),
+        trans_y: (@skew_y * other.trans_x) + (@scale_y * other.trans_y) + @trans_y,
+        persp0: (@persp0 * other.scale_x) + (@persp1 * other.skew_y) + (@persp2 * other.persp0),
+        persp1: (@persp0 * other.skew_x) + (@persp1 * other.scale_y) + (@persp2 * other.persp1),
+        persp2: (@persp0 * other.trans_x) + (@persp1 * other.trans_y) + (@persp2 * other.persp2)
       )
     end
 
     def transform_point(point)
-      x = point.x * @scale_x + point.y * @skew_x + @trans_x
-      y = point.x * @skew_y + point.y * @scale_y + @trans_y
+      x = (point.x * @scale_x) + (point.y * @skew_x) + @trans_x
+      y = (point.x * @skew_y) + (point.y * @scale_y) + @trans_y
       Point.new(x, y)
     end
 

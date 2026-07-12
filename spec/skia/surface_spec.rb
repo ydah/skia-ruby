@@ -105,10 +105,11 @@ RSpec.describe Skia::Surface do
     end
 
     it 'keeps its surface alive' do
-      owned_surface = described_class.make_raster(8, 8)
-      weak_surface = WeakRef.new(owned_surface)
-      canvas = owned_surface.canvas
-      owned_surface = nil
+      build_canvas = lambda do
+        owned_surface = described_class.make_raster(8, 8)
+        [WeakRef.new(owned_surface), owned_surface.canvas]
+      end
+      weak_surface, canvas = build_canvas.call
       GC.start
 
       expect(weak_surface).to be_weakref_alive

@@ -91,9 +91,7 @@ module Skia
     end
 
     def corner_radius(corner)
-      unless CORNERS.include?(corner)
-        raise ArgumentError, "Invalid corner: #{corner.inspect}. Expected one of: #{CORNERS.join(', ')}"
-      end
+      raise ArgumentError, "Invalid corner: #{corner.inspect}. Expected one of: #{CORNERS.join(', ')}" unless CORNERS.include?(corner)
 
       point_struct = Native::SKPoint.new
       Native.sk_rrect_get_radii(@ptr, corner, point_struct)

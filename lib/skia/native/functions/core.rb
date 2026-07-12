@@ -11,11 +11,11 @@ module Skia
                              [:gr_recording_context_t, :bool, SKImageInfo.ptr, :int, :gr_surface_origin_t,
                               :sk_surfaceprops_t, :bool], :sk_surface_t
     optional_attach_function :sk_surface_new_backend_render_target,
-                             [:gr_recording_context_t, :gr_backendrendertarget_t, :gr_surface_origin_t,
-                              :sk_colortype_t, :sk_colorspace_t, :sk_surfaceprops_t], :sk_surface_t
+                             %i[gr_recording_context_t gr_backendrendertarget_t gr_surface_origin_t
+                                sk_colortype_t sk_colorspace_t sk_surfaceprops_t], :sk_surface_t
     optional_attach_function :sk_surface_new_backend_texture,
-                             [:gr_recording_context_t, :gr_backendtexture_t, :gr_surface_origin_t, :int,
-                              :sk_colortype_t, :sk_colorspace_t, :sk_surfaceprops_t], :sk_surface_t
+                             %i[gr_recording_context_t gr_backendtexture_t gr_surface_origin_t int
+                                sk_colortype_t sk_colorspace_t sk_surfaceprops_t], :sk_surface_t
     attach_function :sk_surface_unref, [:sk_surface_t], :void
     attach_function :sk_surface_get_canvas, [:sk_surface_t], :sk_canvas_t
     attach_function :sk_surface_new_image_snapshot, [:sk_surface_t], :sk_image_t
@@ -69,7 +69,7 @@ module Skia
                     [:sk_canvas_t, :sk_image_t, SKRect.ptr, SKRect.ptr, :sk_paint_t], :void
     attach_function :sk_canvas_draw_line, %i[sk_canvas_t float float float float sk_paint_t], :void
     attach_function :sk_canvas_draw_point, %i[sk_canvas_t float float sk_paint_t], :void
-    attach_function :sk_canvas_draw_points, [:sk_canvas_t, :sk_point_mode_t, :size_t, :pointer, :sk_paint_t], :void
+    attach_function :sk_canvas_draw_points, %i[sk_canvas_t sk_point_mode_t size_t pointer sk_paint_t], :void
     attach_function :sk_canvas_draw_simple_text,
                     %i[sk_canvas_t pointer size_t sk_text_encoding_t float float sk_font_t sk_paint_t], :void
     attach_function :sk_canvas_draw_text_blob, %i[sk_canvas_t sk_textblob_t float float sk_paint_t], :void
@@ -139,7 +139,7 @@ module Skia
     attach_function :sk_path_count_verbs, [:sk_path_t], :int
 
     # PathMeasure
-    attach_function :sk_pathmeasure_new_with_path, [:sk_path_t, :bool, :float], :sk_pathmeasure_t
+    attach_function :sk_pathmeasure_new_with_path, %i[sk_path_t bool float], :sk_pathmeasure_t
     attach_function :sk_pathmeasure_get_length, [:sk_pathmeasure_t], :float
     attach_function :sk_pathmeasure_destroy, [:sk_pathmeasure_t], :void
   end

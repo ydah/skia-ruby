@@ -30,10 +30,10 @@ module Skia
     attach_function :sk_pixmap_get_info, [:sk_pixmap_t, SKImageInfo.ptr], :void
     attach_function :sk_pixmap_get_row_bytes, [:sk_pixmap_t], :size_t
     attach_function :sk_pixmap_get_colorspace, [:sk_pixmap_t], :sk_colorspace_t
-    attach_function :sk_pixmap_set_colorspace, [:sk_pixmap_t, :sk_colorspace_t], :void
-    attach_function :sk_pixmap_get_pixel_color, [:sk_pixmap_t, :int, :int], :sk_color_t
+    attach_function :sk_pixmap_set_colorspace, %i[sk_pixmap_t sk_colorspace_t], :void
+    attach_function :sk_pixmap_get_pixel_color, %i[sk_pixmap_t int int], :sk_color_t
     attach_function :sk_pixmap_get_writable_addr, [:sk_pixmap_t], :pointer
-    attach_function :sk_pixmap_get_writeable_addr_with_xy, [:sk_pixmap_t, :int, :int], :pointer
+    attach_function :sk_pixmap_get_writeable_addr_with_xy, %i[sk_pixmap_t int int], :pointer
     attach_function :sk_pixmap_read_pixels,
                     [:sk_pixmap_t, SKImageInfo.ptr, :pointer, :size_t, :int, :int], :bool
     attach_function :sk_pixmap_extract_subset, [:sk_pixmap_t, :sk_pixmap_t, SKIRect.ptr], :bool
@@ -49,14 +49,14 @@ module Skia
     attach_function :sk_bitmap_get_info, [:sk_bitmap_t, SKImageInfo.ptr], :void
     attach_function :sk_bitmap_get_row_bytes, [:sk_bitmap_t], :size_t
     attach_function :sk_bitmap_get_byte_count, [:sk_bitmap_t], :size_t
-    attach_function :sk_bitmap_get_pixels, [:sk_bitmap_t, :pointer], :pointer
-    attach_function :sk_bitmap_set_pixels, [:sk_bitmap_t, :pointer], :void
+    attach_function :sk_bitmap_get_pixels, %i[sk_bitmap_t pointer], :pointer
+    attach_function :sk_bitmap_set_pixels, %i[sk_bitmap_t pointer], :void
     attach_function :sk_bitmap_install_pixels, [:sk_bitmap_t, SKImageInfo.ptr, :pointer, :size_t, :pointer, :pointer], :bool
     attach_function :sk_bitmap_try_alloc_pixels, [:sk_bitmap_t, SKImageInfo.ptr, :size_t], :bool
     attach_function :sk_bitmap_try_alloc_pixels_with_flags, [:sk_bitmap_t, SKImageInfo.ptr, :uint32], :bool
-    attach_function :sk_bitmap_peek_pixels, [:sk_bitmap_t, :sk_pixmap_t], :bool
-    attach_function :sk_bitmap_get_pixel_color, [:sk_bitmap_t, :int, :int], :sk_color_t
-    attach_function :sk_bitmap_erase, [:sk_bitmap_t, :sk_color_t], :void
+    attach_function :sk_bitmap_peek_pixels, %i[sk_bitmap_t sk_pixmap_t], :bool
+    attach_function :sk_bitmap_get_pixel_color, %i[sk_bitmap_t int int], :sk_color_t
+    attach_function :sk_bitmap_erase, %i[sk_bitmap_t sk_color_t], :void
     attach_function :sk_bitmap_erase_rect, [:sk_bitmap_t, :sk_color_t, SKIRect.ptr], :void
     attach_function :sk_bitmap_extract_subset, [:sk_bitmap_t, :sk_bitmap_t, SKIRect.ptr], :bool
     attach_function :sk_bitmap_make_shader,
@@ -90,6 +90,6 @@ module Skia
     attach_function :sk_colorspace_new_srgb_linear, [], :sk_colorspace_t
     attach_function :sk_colorspace_is_srgb, [:sk_colorspace_t], :bool
     attach_function :sk_colorspace_gamma_is_linear, [:sk_colorspace_t], :bool
-    attach_function :sk_colorspace_equals, [:sk_colorspace_t, :sk_colorspace_t], :bool
+    attach_function :sk_colorspace_equals, %i[sk_colorspace_t sk_colorspace_t], :bool
   end
 end

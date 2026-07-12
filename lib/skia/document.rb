@@ -11,7 +11,7 @@ module Skia
       @data = nil
     end
 
-    def self.create_pdf(path, metadata: nil, &block)
+    def self.create_pdf(path, metadata: nil, &)
       stream = Native.sk_filewstream_new(path)
       raise Error, "Failed to create file stream for: #{path}" if stream.nil? || stream.null?
 
@@ -20,13 +20,13 @@ module Skia
 
       doc = new(ptr, stream, stream_kind: :file, metadata_refs: metadata_refs)
       stream = nil # ownership moved to Document instance
-      with_optional_block(doc, &block)
+      with_optional_block(doc, &)
     rescue StandardError
       Native.sk_filewstream_destroy(stream) if stream && !stream.null?
       raise
     end
 
-    def self.create_pdf_stream(metadata: nil, &block)
+    def self.create_pdf_stream(metadata: nil, &)
       stream = Native.sk_dynamicmemorywstream_new
       raise Error, 'Failed to create memory stream' if stream.nil? || stream.null?
 
@@ -35,7 +35,7 @@ module Skia
 
       doc = new(ptr, stream, stream_kind: :memory, metadata_refs: metadata_refs)
       stream = nil # ownership moved to Document instance
-      with_optional_block(doc, &block)
+      with_optional_block(doc, &)
     rescue StandardError
       Native.sk_dynamicmemorywstream_destroy(stream) if stream && !stream.null?
       raise
@@ -60,8 +60,8 @@ module Skia
       end
     end
 
-    def page(width, height, content_rect: nil, &block)
-      begin_page(width, height, content_rect: content_rect, &block)
+    def page(width, height, content_rect: nil, &)
+      begin_page(width, height, content_rect: content_rect, &)
     end
 
     def end_page
@@ -122,9 +122,7 @@ module Skia
     end
 
     def self.build_pdf_metadata(metadata)
-      unless metadata.is_a?(Hash)
-        raise ArgumentError, 'metadata must be a Hash'
-      end
+      raise ArgumentError, 'metadata must be a Hash' unless metadata.is_a?(Hash)
 
       md = metadata.each_with_object({}) { |(k, v), h| h[k.to_sym] = v }
       refs = []

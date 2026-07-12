@@ -46,7 +46,7 @@ module Skia
         Native.optional_attach_function :skottie_animation_get_in_point, [:pointer], :double
         Native.optional_attach_function :skottie_animation_get_out_point, [:pointer], :double
         Native.optional_attach_function :skottie_animation_get_size, [:pointer, Native::SKSize.ptr], :void
-        Native.optional_attach_function :skottie_animation_get_version, [:pointer, :sk_string_t], :void
+        Native.optional_attach_function :skottie_animation_get_version, %i[pointer sk_string_t], :void
 
         @native_symbols_registered = true
       end

@@ -1,5 +1,12 @@
 # Skia Ruby
 
+[![Gem Version](https://badge.fury.io/rb/skia.svg)](https://rubygems.org/gems/skia)
+[![CI](https://github.com/ydah/skia-ruby/actions/workflows/ci.yml/badge.svg)](https://github.com/ydah/skia-ruby/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ydah/skia-ruby/graph/badge.svg)](https://codecov.io/gh/ydah/skia-ruby)
+[![Documentation](https://img.shields.io/badge/docs-rubydoc.info-blue)](https://rubydoc.info/gems/skia)
+
+[日本語](README.ja.md)
+
 Skia bindings for Ruby, providing 2D drawing, image processing, PDF generation, runtime shaders, skottie animation, and SVG path/DOM rendering.
 
 <img width="400" alt="Image" src="https://github.com/user-attachments/assets/440971a6-bf10-4cc2-abe6-e5cf28949b95" />
@@ -153,6 +160,15 @@ end
 surface.save_png('output.png')
 ```
 
+For deterministic cleanup, every `Surface` factory also accepts a block:
+
+```ruby
+Skia::Surface.make_raster(640, 480) do |surface|
+  surface.canvas.clear(Skia::Color::WHITE)
+  surface.save_png('output.png')
+end # native surface is released here, including when the block raises
+```
+
 ## PDF Example
 
 ```ruby
@@ -242,6 +258,25 @@ ruby examples/svg_dom.rb
 ```
 
 Release and upstream sync guidance: `docs/release-checklist.md`
+
+Generate API documentation and validate the bundled RBS signatures with:
+
+```bash
+bundle exec rake docs
+bundle exec rbs validate
+bundle exec steep check
+```
+
+Published API reference: [rubydoc.info/gems/skia](https://rubydoc.info/gems/skia)
+
+## Concurrency policy
+
+- Independent `Surface`, `Canvas`, `Paint`, and other native objects may be created and used in separate threads.
+- Do not use the same mutable native-backed object concurrently. Synchronization remains the caller's responsibility.
+- A `Canvas` keeps its parent `Surface` alive, and borrowed pixel/effect objects keep their native owner alive.
+- Native-backed objects are not Ractor-shareable. Build and render them inside the Ractor that owns them.
+
+CI exercises independent surface rendering from multiple threads. Ractor support will require an isolation-safe FFI boundary and is not currently claimed.
 
 ## License
 

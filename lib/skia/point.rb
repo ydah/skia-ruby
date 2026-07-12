@@ -41,7 +41,7 @@ module Skia
     end
 
     def length
-      Math.sqrt(@x * @x + @y * @y)
+      Math.sqrt((@x * @x) + (@y * @y))
     end
 
     def normalize
