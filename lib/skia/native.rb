@@ -40,9 +40,19 @@ module Skia
         File.directory?(path) ? File.join(path, lib_name) : path
       end
 
+      def user_native_dir(platform_key)
+        base_dir = if /mingw|mswin/.match?(RUBY_PLATFORM)
+                     ENV['LOCALAPPDATA'] || File.expand_path('~/AppData/Local')
+                   else
+                     ENV['XDG_DATA_HOME'] || File.expand_path('~/.local/share')
+                   end
+        File.join(base_dir, 'skia-ruby', 'native', platform_key)
+      end
+
       def prebuilt_candidates(gem_root, platform_key, lib_name)
         [
           normalize_library_path(ENV['SKIA_PREBUILT_DIR'], lib_name),
+          File.join(user_native_dir(platform_key), lib_name),
           File.join(gem_root, 'vendor', 'native', platform_key, lib_name),
           File.join(gem_root, 'vendor', 'native', lib_name)
         ]
@@ -77,7 +87,8 @@ module Skia
                   "Invalid SKIA_NATIVE_SOURCE='#{source}'. Use one of: auto, local, prebuilt"
           end
 
-        found = search_paths.compact.uniq.find { |path| File.file?(path) }
+        @last_search_paths = search_paths.compact.uniq
+        found = @last_search_paths.find { |path| File.file?(path) }
         return found if found
 
         if source == 'local'
@@ -86,7 +97,23 @@ module Skia
                 "Set SKIA_LIBRARY_PATH to '#{lib_name}' or a directory containing it."
         end
 
+        @last_search_paths.concat(fallbacks).uniq!
         [lib_name, *fallbacks]
+      end
+
+      def load_error_message(error)
+        searched_paths = Array(@last_search_paths).map { |path| "  - #{path}" }.join("\n")
+        <<~MESSAGE.chomp
+          Failed to load the SkiaSharp native library: #{error.message}
+          Searched paths:
+          #{searched_paths.empty? ? '  - (none)' : searched_paths}
+
+          Install the native library with:
+            bundle exec skia-install-native
+
+          Alternatively, set SKIA_LIBRARY_PATH to the library file or its directory.
+          Package downloads: #{native_assets_download_url}
+        MESSAGE
       end
 
       def optional_attach_function(name, args, ret)
@@ -110,9 +137,8 @@ module Skia
       lib_path = find_library
       ffi_lib(*Array(lib_path))
     rescue LoadError => e
-      warn 'Failed to load Skia library. Please ensure libSkiaSharp is installed.'
-      warn "Download from: #{native_assets_download_url}"
-      raise e
+      warn load_error_message(e)
+      raise
     end
 
     require_relative 'native/types'

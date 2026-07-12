@@ -45,7 +45,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 
 ## Requirements
 
-- Ruby 3.0+
+- Ruby 3.2+
 - SkiaSharp native library (`libSkiaSharp`)
   - macOS: `libSkiaSharp.dylib`
   - Linux: `libSkiaSharp.so`
@@ -65,9 +65,18 @@ Then run:
 bundle install
 ```
 
+Install the native library once in your user data directory:
+
+```bash
+bundle exec skia-install-native
+```
+
+The loader discovers that directory automatically; no environment variables are required.
+
 ## Installing Native Library
 
-The gem loads `libSkiaSharp` from project root, current working directory, `SKIA_LIBRARY_PATH`, or system path.
+The gem loads `libSkiaSharp` from `SKIA_LIBRARY_PATH`, the user data directory, project/vendor directories,
+the current working directory, or the system path. If loading fails, the error lists every searched path.
 
 ### Recommended (script-based)
 
@@ -77,6 +86,12 @@ Use the bundled installer scripts (defaults to prebuilt download):
 scripts/install_native_skia.sh prebuilt
 export SKIA_NATIVE_SOURCE=prebuilt
 export SKIA_PREBUILT_DIR="$PWD/vendor/native/$(uname | tr '[:upper:]' '[:lower:]')"
+```
+
+For repository development, the equivalent Rake task is:
+
+```bash
+bundle exec rake skia:install_native
 ```
 
 On Windows:

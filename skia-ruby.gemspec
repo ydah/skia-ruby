@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = 'Ruby bindings for Skia, providing high-performance 2D graphics capabilities'
   spec.homepage = 'https://github.com/ydah/skia-ruby'
   spec.license = 'MIT'
-  spec.required_ruby_version = '>= 3.0.0'
+  spec.required_ruby_version = '>= 3.2.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = "#{spec.homepage}/tree/v#{spec.version}"
@@ -25,6 +25,12 @@ Gem::Specification.new do |spec|
     end
   end
   spec.require_paths = ['lib']
+  spec.bindir = 'exe'
+  spec.executables = ['skia-install-native']
+  spec.post_install_message = <<~MESSAGE
+    Skia requires the SkiaSharp native library.
+    Install it with: bundle exec skia-install-native
+  MESSAGE
 
   spec.add_dependency 'ffi', '~> 1.15'
 end

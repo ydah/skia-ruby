@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'fileutils'
+
+gem_root = File.expand_path('..', __dir__)
+platform_key = case RUBY_PLATFORM
+               when /darwin/ then 'darwin'
+               when /linux/ then 'linux'
+               when /mingw|mswin/ then 'windows'
+               else abort "Unsupported platform: #{RUBY_PLATFORM}"
+               end
+
+data_home = if platform_key == 'windows'
+              ENV['LOCALAPPDATA'] || File.expand_path('~/AppData/Local')
+            else
+              ENV['XDG_DATA_HOME'] || File.expand_path('~/.local/share')
+            end
+target_dir = File.join(data_home, 'skia-ruby', 'native', platform_key)
+FileUtils.mkdir_p(target_dir)
+ENV['SKIA_PREBUILT_DIR'] = target_dir
+
+if platform_key == 'windows'
+  script = File.join(gem_root, 'scripts', 'install_native_skia.ps1')
+  exec('powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, '-Mode', 'prebuilt')
+else
+  script = File.join(gem_root, 'scripts', 'install_native_skia.sh')
+  exec(script, 'prebuilt')
+end
