@@ -257,6 +257,15 @@ RSpec.describe Skia::Canvas do
     end
   end
 
+  describe '#draw_shadow' do
+    it 'draws ambient and offset spot shadows' do
+      path = Skia::Path.new.add_circle(50, 50, 20)
+
+      expect(canvas.draw_shadow(path, elevation: 8)).to eq(canvas)
+      expect { canvas.draw_shadow(path, elevation: -1) }.to raise_error(ArgumentError)
+    end
+  end
+
   describe '#draw_paint' do
     it 'fills with paint' do
       paint = Skia::Paint.new

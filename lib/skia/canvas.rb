@@ -166,6 +166,20 @@ module Skia
       self
     end
 
+    def draw_shadow(path, elevation:, ambient_color: Color.argb(40, 0, 0, 0), spot_color: Color.argb(70, 0, 0, 0),
+                    light_position: Point.new(-0.35, -0.6))
+      height = Float(elevation)
+      raise ArgumentError, 'elevation must not be negative' if height.negative?
+      return self if height.zero?
+
+      draw_blurred_path(path, ambient_color, sigma: [height * 0.5, 0.5].max)
+      with_save do
+        translate(-light_position.x * height, -light_position.y * height)
+        draw_blurred_path(path, spot_color, sigma: [height * 0.75, 0.5].max)
+      end
+      self
+    end
+
     def draw_region(region, paint)
       raise ArgumentError, 'region must be a Skia::Region' unless region.is_a?(Region)
 
@@ -289,6 +303,14 @@ module Skia
     end
 
     private
+
+    def draw_blurred_path(path, color, sigma:)
+      shadow_paint = Paint.new
+      shadow_paint.antialias = true
+      shadow_paint.color = color
+      shadow_paint.mask_filter = MaskFilter.blur(sigma: sigma)
+      draw_path(path, shadow_paint)
+    end
 
     def coerce_point(point)
       return point if point.is_a?(Point)

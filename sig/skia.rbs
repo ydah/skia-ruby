@@ -246,6 +246,7 @@ module Skia
     def draw_patch: (Array[Point | [Numeric, Numeric]] cubics, Paint paint, ?colors: Array[Color | Integer]?, ?texture_coords: Array[Point | [Numeric, Numeric]]?, ?blend_mode: Symbol) -> Canvas
     def draw_text: (String text, Numeric x, Numeric y, Font font, Paint paint) -> Canvas
     def draw_text_on_path: (String text, Path path, Font font, Paint paint, ?offset: Numeric) -> Canvas
+    def draw_shadow: (Path path, elevation: Numeric, ?ambient_color: Color, ?spot_color: Color, ?light_position: Point) -> Canvas
     def with_save: () { (Canvas) -> untyped } -> untyped
     def with_save_layer: (?Rect? bounds, ?Paint? paint) { (Canvas) -> untyped } -> untyped
   end
