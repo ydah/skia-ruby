@@ -222,6 +222,8 @@ module Skia
     def stroke_miter=: (Numeric value) -> Numeric
     def blend_mode: () -> Symbol
     def blend_mode=: (Symbol value) -> Symbol
+    def blender: () -> Blender?
+    def blender=: (Blender? value) -> Blender?
     def shader: () -> Shader?
     def shader=: (Shader? value) -> Shader?
     def mask_filter: () -> MaskFilter?
@@ -371,6 +373,21 @@ module Skia
 
   class ColorFilter < Base
     def self.mode: ((Color | Integer) color, ?Symbol blend_mode) -> ColorFilter
+    def self.lighting: (Color | Integer multiply, Color | Integer add) -> ColorFilter
+    def self.compose: (ColorFilter outer, ColorFilter inner) -> ColorFilter
+    def self.lerp: (Numeric weight, ColorFilter from, ColorFilter to) -> ColorFilter
+    def self.matrix: (Array[Numeric] values) -> ColorFilter
+    def self.hsla_matrix: (Array[Numeric] values) -> ColorFilter
+    def self.srgb_to_linear_gamma: () -> ColorFilter
+    def self.linear_to_srgb_gamma: () -> ColorFilter
+    def self.luma: () -> ColorFilter
+    def self.table: (Array[Integer] values) -> ColorFilter
+    def self.argb_table: (alpha: Array[Integer], red: Array[Integer], green: Array[Integer], blue: Array[Integer]) -> ColorFilter
+  end
+
+  class Blender < Base
+    def self.mode: (Symbol blend_mode) -> Blender
+    def self.arithmetic: (Numeric k1, Numeric k2, Numeric k3, Numeric k4, ?enforce_premul: bool) -> Blender
   end
 
   class ImageFilter < Base
@@ -386,6 +403,18 @@ module Skia
 
   class Font < Base
     def initialize: (?Typeface? typeface, ?Numeric size, ?Numeric scale_x, ?Numeric skew_x) -> void
+  end
+
+  class RuntimeEffect < Base
+    def self.make_for_shader: (String sksl) -> RuntimeEffect
+    def self.make_for_color_filter: (String sksl) -> RuntimeEffect
+    def self.make_for_blender: (String sksl) -> RuntimeEffect
+    def make_shader: (?uniforms: Data | String?, ?children: Array[Base?], ?matrix: Matrix?) -> Shader
+    def make_color_filter: (?uniforms: Data | String?, ?children: Array[Base?]) -> ColorFilter
+    def make_blender: (?uniforms: Data | String?, ?children: Array[Base?]) -> Blender
+    def uniform_byte_size: () -> Integer
+    def uniform_names: () -> Array[String]
+    def child_names: () -> Array[String]
   end
 
 

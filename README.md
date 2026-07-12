@@ -38,7 +38,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 - Geometry/value types
   - `Point`, `Rect`, `RRect`, `Matrix`, `ImageInfo`, `ColorSpace`
 - Effect wrappers
-  - `MaskFilter`, `ColorFilter`, `ImageFilter`, `PathEffect`
+  - `MaskFilter`, color-matrix/table `ColorFilter`, `ImageFilter`, `PathEffect`, `Blender`
 - Pixel APIs
   - `Bitmap`, `Pixmap`, `read_pixels` helpers
 - Text primitives
@@ -228,7 +228,7 @@ surface.save_png('runtime_effect.png')
 | --- | --- | --- |
 | Core drawing (`Surface`/`Canvas`/`Paint`/`Path`) | Implemented | Includes PathOps, PathMeasure, Region, clip and quick-reject APIs |
 | Shape/text primitives (`RRect`, `TextBlob`) | Implemented | Glyph-positioned drawing is supported via `TextBlob` |
-| Effects (`MaskFilter`, `ColorFilter`, `ImageFilter`, `PathEffect`) | Implemented | Exposed through Ruby wrappers and `Paint` setters |
+| Effects (`MaskFilter`, `ColorFilter`, `ImageFilter`, `PathEffect`, `Blender`) | Implemented | Includes color matrices/tables and runtime color filters/blenders |
 | Pixel and color APIs (`Bitmap`, `Pixmap`, `ImageInfo`, `ColorSpace`) | Implemented | Read/copy/access pixel-level data |
 | Image and shader extensions | Implemented | Includes gradients and runtime shader compilation |
 | PDF document APIs | Implemented | File/memory output and metadata are supported |

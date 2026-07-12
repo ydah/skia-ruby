@@ -108,6 +108,8 @@ module Skia
     attach_function :sk_paint_set_stroke_join, %i[sk_paint_t sk_stroke_join_t], :void
     attach_function :sk_paint_get_blendmode, [:sk_paint_t], :sk_blend_mode_t
     attach_function :sk_paint_set_blendmode, %i[sk_paint_t sk_blend_mode_t], :void
+    attach_function :sk_paint_get_blender, [:sk_paint_t], :sk_blender_t
+    attach_function :sk_paint_set_blender, %i[sk_paint_t sk_blender_t], :void
     attach_function :sk_paint_get_shader, [:sk_paint_t], :sk_shader_t
     attach_function :sk_paint_set_shader, %i[sk_paint_t sk_shader_t], :void
     attach_function :sk_paint_get_maskfilter, [:sk_paint_t], :sk_mask_filter_t

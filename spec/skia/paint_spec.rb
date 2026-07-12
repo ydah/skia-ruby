@@ -120,6 +120,23 @@ RSpec.describe Skia::Paint do
     end
   end
 
+  describe '#blender' do
+    it 'keeps an assigned blender alive' do
+      blender = Skia::Blender.arithmetic(0, 1, 1, 0)
+      paint.blender = blender
+
+      expect(paint.blender).to equal(blender)
+    end
+
+    it 'clears a cached blender when blend mode is assigned' do
+      paint.blender = Skia::Blender.mode(:multiply)
+      paint.blend_mode = :screen
+
+      expect(paint.blend_mode).to eq(:screen)
+      expect(paint.blender).to be_a(Skia::Blender)
+    end
+  end
+
   describe '#clone' do
     it 'creates a copy with the same properties' do
       paint.color = Skia::Color::RED

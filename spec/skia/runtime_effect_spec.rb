@@ -44,4 +44,35 @@ RSpec.describe Skia::RuntimeEffect do
       expect(bytes.bytesize).to eq(4 * 4 * 4)
     end
   end
+
+  describe 'metadata' do
+    it 'lists uniforms and their byte size' do
+      effect = described_class.make_for_shader(<<~SKSL)
+        uniform float intensity;
+        half4 main(float2 coord) { return half4(intensity); }
+      SKSL
+
+      expect(effect.uniform_names).to eq(['intensity'])
+      expect(effect.uniform_byte_size).to eq(4)
+      expect(effect.child_names).to eq([])
+    end
+  end
+
+  describe 'color filter and blender effects' do
+    it 'creates a runtime color filter' do
+      effect = described_class.make_for_color_filter(<<~SKSL)
+        half4 main(half4 color) { return color; }
+      SKSL
+
+      expect(effect.make_color_filter).to be_a(Skia::ColorFilter)
+    end
+
+    it 'creates a runtime blender' do
+      effect = described_class.make_for_blender(<<~SKSL)
+        half4 main(half4 source, half4 destination) { return source + destination * 0.0; }
+      SKSL
+
+      expect(effect.make_blender).to be_a(Skia::Blender)
+    end
+  end
 end

@@ -70,6 +70,23 @@ module Skia
 
     def blend_mode=(value)
       Native.sk_paint_set_blendmode(@ptr, value)
+      @effect_owners.delete(:blender)
+    end
+
+    def blender
+      return @effect_owners[:blender] if @effect_owners.key?(:blender)
+
+      ptr = Native.sk_paint_get_blender(@ptr)
+      return nil if ptr.nil? || ptr.null?
+
+      Blender.wrap(ptr, owner: self)
+    end
+
+    def blender=(value)
+      raise ArgumentError, 'blender must be a Skia::Blender or nil' unless value.nil? || value.is_a?(Blender)
+
+      Native.sk_paint_set_blender(@ptr, value&.ptr)
+      @effect_owners[:blender] = value
     end
 
     def shader
