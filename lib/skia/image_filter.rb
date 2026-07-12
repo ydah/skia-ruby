@@ -2,14 +2,14 @@
 
 module Skia
   class ImageFilter < Base
-    def initialize(ptr)
-      super(ptr, :sk_imagefilter_unref)
+    def initialize(ptr, owner: nil)
+      super(ptr, owner ? nil : :sk_imagefilter_unref, owner: owner)
     end
 
-    def self.wrap(ptr)
+    def self.wrap(ptr, owner: nil)
       return nil if ptr.nil? || ptr.null?
 
-      new(ptr)
+      new(ptr, owner: owner)
     end
 
     def self.blur(sigma_x, sigma_y, tile_mode: :decal, input: nil, crop_rect: nil)

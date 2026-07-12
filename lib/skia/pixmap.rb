@@ -2,8 +2,8 @@
 
 module Skia
   class Pixmap < Base
-    def initialize(ptr = nil)
-      super(ptr || Native.sk_pixmap_new, :sk_pixmap_destructor)
+    def initialize(ptr = nil, owner: nil)
+      super(ptr || Native.sk_pixmap_new, :sk_pixmap_destructor, owner: owner)
       @pixel_storage = nil
     end
 
@@ -83,12 +83,14 @@ module Skia
       success = Native.sk_pixmap_extract_subset(@ptr, subset.ptr, irect.to_struct)
       return nil unless success
 
+      subset.send(:keep_alive, self)
       subset
     end
 
     def reset
       Native.sk_pixmap_reset(@ptr)
       @pixel_storage = nil
+      @owner = nil
       self
     end
 
@@ -104,6 +106,11 @@ module Skia
       return rect if rect.is_a?(IRect)
 
       raise ArgumentError, 'rect must be a Skia::IRect'
+    end
+
+    def keep_alive(owner)
+      @owner = owner
+      self
     end
   end
 end

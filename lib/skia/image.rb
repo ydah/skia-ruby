@@ -110,6 +110,7 @@ module Skia
       pixmap = Pixmap.new
       return nil unless Native.sk_image_peek_pixels(@ptr, pixmap.ptr)
 
+      pixmap.send(:keep_alive, self)
       pixmap
     end
 

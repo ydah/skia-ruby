@@ -2,14 +2,14 @@
 
 module Skia
   class Shader < Base
-    def initialize(ptr)
-      super(ptr, :sk_shader_unref)
+    def initialize(ptr, owner: nil)
+      super(ptr, owner ? nil : :sk_shader_unref, owner: owner)
     end
 
-    def self.wrap(ptr)
+    def self.wrap(ptr, owner: nil)
       return nil if ptr.nil? || ptr.null?
 
-      new(ptr)
+      new(ptr, owner: owner)
     end
 
     def self.linear_gradient(start_point, end_point, colors, positions = nil, tile_mode: :clamp, matrix: nil)

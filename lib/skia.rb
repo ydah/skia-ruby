@@ -38,6 +38,7 @@ require_relative 'skia/picture'
 module Skia
   class Error < StandardError; end
   class NullPointerError < Error; end
+  class ClosedError < Error; end
   class EncodingError < Error; end
   class DecodingError < Error; end
   class FileNotFoundError < Error; end

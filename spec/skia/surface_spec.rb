@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'weakref'
 
 RSpec.describe Skia::Surface do
   subject(:surface) { described_class.make_raster(640, 480) }
@@ -37,6 +38,29 @@ RSpec.describe Skia::Surface do
       expect(custom_surface.width).to eq(32)
       expect(custom_surface.height).to eq(24)
     end
+
+    it 'closes the surface after a block' do
+      yielded_surface = nil
+      result = described_class.make_raster(8, 8) do |block_surface|
+        yielded_surface = block_surface
+        :rendered
+      end
+
+      expect(result).to eq(:rendered)
+      expect(yielded_surface).to be_closed
+    end
+
+    it 'closes the surface when a block raises' do
+      yielded_surface = nil
+
+      expect do
+        described_class.make_raster(8, 8) do |block_surface|
+          yielded_surface = block_surface
+          raise 'render failed'
+        end
+      end.to raise_error('render failed')
+      expect(yielded_surface).to be_closed
+    end
   end
 
   describe '.make_null' do
@@ -45,6 +69,15 @@ RSpec.describe Skia::Surface do
       expect(null_surface).to be_a(described_class)
       expect(null_surface.width).to eq(128)
       expect(null_surface.height).to eq(64)
+    end
+  end
+
+  describe '.make_raster_direct' do
+    it 'keeps an FFI pixel buffer alive' do
+      pixels = FFI::MemoryPointer.new(:uint8, 16)
+      direct_surface = described_class.make_raster_direct(2, 2, pixels: pixels, row_bytes: 8)
+
+      expect(direct_surface.instance_variable_get(:@pixel_storage)).to equal(pixels)
     end
   end
 
@@ -69,6 +102,33 @@ RSpec.describe Skia::Surface do
       canvas1 = surface.canvas
       canvas2 = surface.canvas
       expect(canvas1.ptr).to eq(canvas2.ptr)
+    end
+
+    it 'keeps its surface alive' do
+      owned_surface = described_class.make_raster(8, 8)
+      weak_surface = WeakRef.new(owned_surface)
+      canvas = owned_surface.canvas
+      owned_surface = nil
+      GC.start
+
+      expect(weak_surface).to be_weakref_alive
+      expect(canvas).not_to be_closed
+    end
+
+    it 'cannot be used after its surface is closed' do
+      canvas = surface.canvas
+      surface.close
+
+      expect { canvas.clear }.to raise_error(Skia::ClosedError)
+    end
+  end
+
+  describe '#close' do
+    it 'is idempotent' do
+      surface.close
+
+      expect { surface.close }.not_to raise_error
+      expect(surface).to be_closed
     end
   end
 

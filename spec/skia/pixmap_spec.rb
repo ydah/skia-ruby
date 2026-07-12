@@ -25,6 +25,14 @@ RSpec.describe Skia::Pixmap do
 
       expect(data.bytesize).to eq(8 * 8 * 4)
     end
+
+    it 'keeps the source image alive' do
+      surface = Skia::Surface.make_raster(2, 2)
+      image = surface.snapshot
+      pixmap = image.peek_pixels
+
+      expect(pixmap.instance_variable_get(:@owner)).to equal(image)
+    end
   end
 
   describe '#color_space=' do

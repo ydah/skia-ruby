@@ -12,36 +12,36 @@ module Skia
     end
 
     def self.make_raster(width = nil, height = nil, image_info: nil, color_type: :rgba_8888, alpha_type: :premul,
-                         color_space: nil)
+                         color_space: nil, &block)
       info = build_image_info(width, height, image_info, color_type: color_type, alpha_type: alpha_type, color_space: color_space)
       ptr = Native.sk_surface_new_raster(info.to_struct, 0, nil)
       raise Error, 'Failed to create raster surface' if ptr.nil? || ptr.null?
 
-      new(ptr, info.width, info.height)
+      yield_surface(new(ptr, info.width, info.height), &block)
     end
 
     def self.make_raster_direct(width = nil, height = nil, pixels:, row_bytes:, image_info: nil, color_type: :rgba_8888,
-                                alpha_type: :premul, color_space: nil)
+                                alpha_type: :premul, color_space: nil, &block)
       info = build_image_info(width, height, image_info, color_type: color_type, alpha_type: alpha_type, color_space: color_space)
       pixel_ptr, storage = coerce_pixels(pixels)
       ptr = Native.sk_surface_new_raster_direct(info.to_struct, pixel_ptr, row_bytes, nil, nil, nil)
       raise Error, 'Failed to create direct raster surface' if ptr.nil? || ptr.null?
 
       surface = new(ptr, info.width, info.height)
-      surface.instance_variable_set(:@pixel_storage, storage) if storage
-      surface
+      surface.instance_variable_set(:@pixel_storage, storage)
+      yield_surface(surface, &block)
     end
 
-    def self.make_null(width, height)
+    def self.make_null(width, height, &block)
       ptr = Native.sk_surface_new_null(width.to_i, height.to_i)
       raise Error, 'Failed to create null surface' if ptr.nil? || ptr.null?
 
-      new(ptr, width, height)
+      yield_surface(new(ptr, width, height), &block)
     end
 
     def self.make_render_target(context:, width: nil, height: nil, image_info: nil, budgeted: true, sample_count: 0,
                                 origin: :top_left, create_mips: false, color_type: :rgba_8888, alpha_type: :premul,
-                                color_space: nil)
+                                color_space: nil, &block)
       ensure_native_function!(:sk_surface_new_render_target, '.make_render_target')
       info = build_image_info(width, height, image_info, color_type: color_type, alpha_type: alpha_type, color_space: color_space)
       ptr = Native.sk_surface_new_render_target(
@@ -55,11 +55,11 @@ module Skia
       )
       raise Error, 'Failed to create render target surface' if ptr.nil? || ptr.null?
 
-      new(ptr, info.width, info.height)
+      yield_surface(new(ptr, info.width, info.height), &block)
     end
 
     def self.make_backend_render_target(context:, backend_render_target:, width:, height:, origin: :top_left,
-                                        color_type: :rgba_8888, color_space: nil)
+                                        color_type: :rgba_8888, color_space: nil, &block)
       ensure_native_function!(:sk_surface_new_backend_render_target, '.make_backend_render_target')
       ptr = Native.sk_surface_new_backend_render_target(
         coerce_pointer(context),
@@ -71,11 +71,11 @@ module Skia
       )
       raise Error, 'Failed to create backend render target surface' if ptr.nil? || ptr.null?
 
-      new(ptr, width, height)
+      yield_surface(new(ptr, width, height), &block)
     end
 
     def self.make_backend_texture(context:, backend_texture:, width:, height:, sample_count: 0, origin: :top_left,
-                                  color_type: :rgba_8888, color_space: nil)
+                                  color_type: :rgba_8888, color_space: nil, &block)
       ensure_native_function!(:sk_surface_new_backend_texture, '.make_backend_texture')
       ptr = Native.sk_surface_new_backend_texture(
         coerce_pointer(context),
@@ -88,29 +88,36 @@ module Skia
       )
       raise Error, 'Failed to create backend texture surface' if ptr.nil? || ptr.null?
 
-      new(ptr, width, height)
+      yield_surface(new(ptr, width, height), &block)
     end
 
     def canvas
-      @canvas ||= Canvas.new(Native.sk_surface_get_canvas(@ptr))
+      @canvas = nil if @canvas&.closed?
+      @canvas ||= Canvas.new(Native.sk_surface_get_canvas(ptr), owner: self)
+    end
+
+    def close
+      @canvas&.close
+      super
     end
 
     def snapshot(crop: nil)
-      ptr = if crop
-              irect = crop.is_a?(IRect) ? crop : IRect.from_xywh(crop.left, crop.top, crop.width, crop.height)
-              Native.sk_surface_new_image_snapshot_with_crop(@ptr, irect.to_struct)
-            else
-              Native.sk_surface_new_image_snapshot(@ptr)
-            end
-      raise Error, 'Failed to create image snapshot' if ptr.nil? || ptr.null?
+      image_ptr = if crop
+                    irect = crop.is_a?(IRect) ? crop : IRect.from_xywh(crop.left, crop.top, crop.width, crop.height)
+                    Native.sk_surface_new_image_snapshot_with_crop(ptr, irect.to_struct)
+                  else
+                    Native.sk_surface_new_image_snapshot(ptr)
+                  end
+      raise Error, 'Failed to create image snapshot' if image_ptr.nil? || image_ptr.null?
 
-      Image.new(ptr)
+      Image.new(image_ptr)
     end
 
     def peek_pixels
       pixmap = Pixmap.new
-      return nil unless Native.sk_surface_peek_pixels(@ptr, pixmap.ptr)
+      return nil unless Native.sk_surface_peek_pixels(ptr, pixmap.ptr)
 
+      pixmap.send(:keep_alive, self)
       pixmap
     end
 
@@ -125,7 +132,7 @@ module Skia
       byte_size = row_bytes * info.height
       pixels = FFI::MemoryPointer.new(:uint8, byte_size)
 
-      ok = Native.sk_surface_read_pixels(@ptr, info.to_struct, pixels, row_bytes, src_x.to_i, src_y.to_i)
+      ok = Native.sk_surface_read_pixels(ptr, info.to_struct, pixels, row_bytes, src_x.to_i, src_y.to_i)
       raise Error, 'Failed to read pixels from surface' unless ok
 
       pixels.read_bytes(byte_size)
@@ -141,7 +148,7 @@ module Skia
       raise Error, 'Failed to create pixmap' if pixmap.nil? || pixmap.null?
 
       begin
-        raise Error, 'Failed to peek pixels from surface' unless Native.sk_surface_peek_pixels(@ptr, pixmap)
+        raise Error, 'Failed to peek pixels from surface' unless Native.sk_surface_peek_pixels(ptr, pixmap)
 
         stream = Native.sk_dynamicmemorywstream_new
         raise Error, 'Failed to create stream' if stream.nil? || stream.null?
@@ -232,7 +239,7 @@ module Skia
 
     def self.coerce_pixels(pixels)
       if pixels.is_a?(FFI::Pointer)
-        [pixels, nil]
+        [pixels, pixels]
       elsif pixels.is_a?(String)
         storage = FFI::MemoryPointer.new(:uint8, pixels.bytesize)
         storage.write_bytes(pixels)
@@ -255,6 +262,17 @@ module Skia
       raise UnsupportedOperationError,
             "Surface#{api_name} is not supported by the current libSkiaSharp (missing #{function_name})"
     end
+
+    def self.yield_surface(surface)
+      return surface unless block_given?
+
+      begin
+        yield surface
+      ensure
+        surface.close
+      end
+    end
+    private_class_method :yield_surface
 
     def detect_format_from_path(path)
       case File.extname(path).downcase

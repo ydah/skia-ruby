@@ -141,15 +141,33 @@ RSpec.describe Skia::Paint do
 
   describe 'effect setters' do
     it 'supports mask, color, image filters and path effect' do
-      paint.mask_filter = Skia::MaskFilter.blur(:normal, sigma: 1.5)
-      paint.color_filter = Skia::ColorFilter.mode(Skia::Color::RED, :multiply)
-      paint.image_filter = Skia::ImageFilter.blur(1.0, 1.0)
-      paint.path_effect = Skia::PathEffect.dash([4, 2], phase: 0.5)
+      mask_filter = Skia::MaskFilter.blur(:normal, sigma: 1.5)
+      color_filter = Skia::ColorFilter.mode(Skia::Color::RED, :multiply)
+      image_filter = Skia::ImageFilter.blur(1.0, 1.0)
+      path_effect = Skia::PathEffect.dash([4, 2], phase: 0.5)
+      paint.mask_filter = mask_filter
+      paint.color_filter = color_filter
+      paint.image_filter = image_filter
+      paint.path_effect = path_effect
 
-      expect(paint.mask_filter).to be_a(Skia::MaskFilter)
-      expect(paint.color_filter).to be_a(Skia::ColorFilter)
-      expect(paint.image_filter).to be_a(Skia::ImageFilter)
-      expect(paint.path_effect).to be_a(Skia::PathEffect)
+      expect(paint.mask_filter).to equal(mask_filter)
+      expect(paint.color_filter).to equal(color_filter)
+      expect(paint.image_filter).to equal(image_filter)
+      expect(paint.path_effect).to equal(path_effect)
+    end
+
+    it 'keeps a shader alive until it is replaced or reset' do
+      shader = Skia::Shader.linear_gradient(
+        Skia::Point.new(0, 0),
+        Skia::Point.new(10, 10),
+        [Skia::Color::BLACK, Skia::Color::WHITE]
+      )
+      paint.shader = shader
+
+      expect(paint.shader).to equal(shader)
+
+      paint.shader = nil
+      expect(paint.shader).to be_nil
     end
   end
 
@@ -163,6 +181,7 @@ RSpec.describe Skia::Paint do
       expect(paint.color.to_i).to eq(Skia::Color::BLACK.to_i)
       expect(paint.style).to eq(:fill)
       expect(paint.stroke_width).to eq(0.0)
+      expect(paint.shader).to be_nil
     end
   end
 end

@@ -2,14 +2,14 @@
 
 module Skia
   class ColorFilter < Base
-    def initialize(ptr)
-      super(ptr, :sk_colorfilter_unref)
+    def initialize(ptr, owner: nil)
+      super(ptr, owner ? nil : :sk_colorfilter_unref, owner: owner)
     end
 
-    def self.wrap(ptr)
+    def self.wrap(ptr, owner: nil)
       return nil if ptr.nil? || ptr.null?
 
-      new(ptr)
+      new(ptr, owner: owner)
     end
 
     def self.mode(color, blend_mode = :src_over)
