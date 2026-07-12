@@ -401,6 +401,21 @@ module Skia
   class Typeface < Base
   end
 
+  class FontManager < Base
+    include Enumerable[String]
+
+    def self.default: () -> FontManager
+    def family_count: () -> Integer
+    def family_name: (Integer index) -> String
+    def families: () -> Array[String]
+    def each: () { (String) -> void } -> FontManager
+             | () -> Enumerator[String, FontManager]
+    def match_family: (String name, ?weight: Integer, ?width: Integer, ?slant: Symbol) -> Typeface?
+    def match_character: (Integer | String character, ?family: String?, ?languages: Array[String], ?weight: Integer, ?width: Integer, ?slant: Symbol) -> Typeface?
+    def make_from_file: (String path, ?index: Integer) -> Typeface
+    def make_from_data: (Data | String data, ?index: Integer) -> Typeface
+  end
+
   class Font < Base
     def initialize: (?Typeface? typeface, ?Numeric size, ?Numeric scale_x, ?Numeric skew_x) -> void
   end

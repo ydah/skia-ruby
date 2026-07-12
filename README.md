@@ -42,7 +42,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 - Pixel APIs
   - `Bitmap`, `Pixmap`, `read_pixels` helpers
 - Text primitives
-  - `Font`, `Typeface`, `TextBlob`
+  - `Font`, `Typeface`, `FontManager` system-font enumeration/fallback, `TextBlob`
 - Structured helpers
   - `Textlayout` (`Shaper`, `Paragraph`)
   - `Svg::Dom` (`<path>` load and draw)

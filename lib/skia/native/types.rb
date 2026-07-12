@@ -28,6 +28,7 @@ module Skia
     typedef :pointer, :sk_region_iterator_t
     typedef :pointer, :sk_vertices_t
     typedef :pointer, :sk_blender_t
+    typedef :pointer, :sk_fontmgr_t
     typedef :pointer, :sk_surfaceprops_t
     typedef :pointer, :sk_rrect_t
     typedef :pointer, :sk_textblob_t

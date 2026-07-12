@@ -8,6 +8,17 @@ module Skia
     attach_function :sk_typeface_create_default, [], :sk_typeface_t
     attach_function :sk_typeface_unref, [:sk_typeface_t], :void
 
+    # FontManager
+    attach_function :sk_fontmgr_create_default, [], :sk_fontmgr_t
+    attach_function :sk_fontmgr_unref, [:sk_fontmgr_t], :void
+    attach_function :sk_fontmgr_count_families, [:sk_fontmgr_t], :int
+    attach_function :sk_fontmgr_get_family_name, %i[sk_fontmgr_t int sk_string_t], :void
+    attach_function :sk_fontmgr_match_family_style, %i[sk_fontmgr_t string pointer], :sk_typeface_t
+    attach_function :sk_fontmgr_match_family_style_character,
+                    %i[sk_fontmgr_t string pointer pointer int int32], :sk_typeface_t
+    attach_function :sk_fontmgr_create_from_file, %i[sk_fontmgr_t string int], :sk_typeface_t
+    attach_function :sk_fontmgr_create_from_data, %i[sk_fontmgr_t sk_data_t int], :sk_typeface_t
+
     # FontStyle
     attach_function :sk_fontstyle_new, %i[int int sk_font_style_slant_t], :pointer
     attach_function :sk_fontstyle_delete, [:pointer], :void
