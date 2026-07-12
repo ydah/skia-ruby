@@ -256,7 +256,7 @@ surface.save_png('runtime_effect.png')
 | Area | Status | Notes |
 | --- | --- | --- |
 | Core drawing (`Surface`/`Canvas`/`Paint`/`Path`) | Implemented | Includes PathOps, PathMeasure, Region, clip and quick-reject APIs |
-| Shape/text primitives (`RRect`, `TextBlob`) | Implemented | Glyph-positioned drawing is supported via `TextBlob` |
+| Shape/text primitives (`RRect`, `TextBlob`) | Implemented | Includes glyph-positioned and path-following text drawing |
 | Effects (`MaskFilter`, `ColorFilter`, `ImageFilter`, `PathEffect`, `Blender`) | Implemented | Includes color matrices/tables and runtime color filters/blenders |
 | Pixel and color APIs (`Bitmap`, `Pixmap`, `ImageInfo`, `ColorSpace`) | Implemented | Read/copy/access pixel-level data |
 | Image and shader extensions | Implemented | Includes gradients and runtime shader compilation |

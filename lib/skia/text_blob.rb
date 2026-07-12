@@ -34,6 +34,22 @@ module Skia
       end
     end
 
+    def self.from_text_on_path(text, font, path, offset: 0.0, bounds: nil)
+      raise ArgumentError, 'path must be a Skia::Path' unless path.is_a?(Path)
+
+      glyphs = font.text_to_glyphs(text)
+      positions = font.glyph_x_positions(glyphs)
+      measure = PathMeasure.new(path)
+      runs = glyphs.zip(positions).filter_map do |glyph, position|
+        distance = offset.to_f + position
+        next unless distance.between?(0.0, measure.length)
+
+        point, tangent = measure.position_tangent(distance) || next
+        [glyph, RotationScaleMatrix.new(tangent.x, tangent.y, point.x, point.y)]
+      end
+      build_rotated_run(runs, font, bounds)
+    end
+
     def bounds
       rect_struct = Native::SKRect.new
       Native.sk_textblob_get_bounds(@ptr, rect_struct)
@@ -43,5 +59,27 @@ module Skia
     def unique_id
       Native.sk_textblob_get_unique_id(@ptr)
     end
+
+    def self.build_rotated_run(runs, font, bounds)
+      return nil if runs.empty?
+
+      builder = Native.sk_textblob_builder_new
+      raise Error, 'Failed to create text blob builder' if builder.nil? || builder.null?
+
+      begin
+        run_buffer = Native::SKRunBuffer.new
+        Native.sk_textblob_builder_alloc_run_rsxform(builder, font.ptr, runs.length, bounds&.to_struct, run_buffer)
+        run_buffer[:glyphs].write_array_of_uint16(runs.map(&:first))
+        transforms = runs.flat_map do |_, transform|
+          [transform.scale_cosine, transform.scale_sine, transform.translate_x, transform.translate_y]
+        end
+        run_buffer[:pos].write_array_of_float(transforms)
+        ptr = Native.sk_textblob_builder_make(builder)
+        ptr.nil? || ptr.null? ? nil : new(ptr)
+      ensure
+        Native.sk_textblob_builder_delete(builder) if builder && !builder.null?
+      end
+    end
+    private_class_method :build_rotated_run
   end
 end

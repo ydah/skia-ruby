@@ -264,6 +264,12 @@ module Skia
       self
     end
 
+    def draw_text_on_path(text, path, font, paint, offset: 0.0)
+      blob = TextBlob.from_text_on_path(text, font, path, offset: offset)
+      draw_text_blob(blob, 0, 0, paint) if blob
+      self
+    end
+
     def with_save
       count = save
       begin

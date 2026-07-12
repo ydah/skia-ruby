@@ -42,6 +42,8 @@ module Skia
     attach_function :sk_textblob_builder_new, [], :sk_textblob_builder_t
     attach_function :sk_textblob_builder_alloc_run_pos_h,
                     [:sk_textblob_builder_t, :sk_font_t, :int, :float, SKRect.ptr, SKRunBuffer.ptr], :void
+    attach_function :sk_textblob_builder_alloc_run_rsxform,
+                    [:sk_textblob_builder_t, :sk_font_t, :int, SKRect.ptr, SKRunBuffer.ptr], :void
     attach_function :sk_textblob_builder_make, [:sk_textblob_builder_t], :sk_textblob_t
     attach_function :sk_textblob_builder_delete, [:sk_textblob_builder_t], :void
     attach_function :sk_textblob_get_bounds, [:sk_textblob_t, SKRect.ptr], :void

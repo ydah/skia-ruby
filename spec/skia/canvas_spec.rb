@@ -311,4 +311,14 @@ RSpec.describe Skia::Canvas do
       expect(canvas.draw_text_blob(blob, 20, 60, paint)).to eq(canvas)
     end
   end
+
+  describe '#draw_text_on_path' do
+    it 'draws glyphs following the path tangent' do
+      path = Skia::Path.new.move_to(5, 50).quad_to(50, 5, 95, 50)
+      font = Skia::Font.new(nil, 16)
+      paint = Skia::Paint.new
+
+      expect(canvas.draw_text_on_path('Curve', path, font, paint)).to eq(canvas)
+    end
+  end
 end
