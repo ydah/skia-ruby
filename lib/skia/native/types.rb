@@ -24,6 +24,9 @@ module Skia
     typedef :pointer, :sk_picture_t
     typedef :pointer, :sk_picture_recorder_t
     typedef :pointer, :sk_pathmeasure_t
+    typedef :pointer, :sk_region_t
+    typedef :pointer, :sk_region_iterator_t
+    typedef :pointer, :sk_vertices_t
     typedef :pointer, :sk_surfaceprops_t
     typedef :pointer, :sk_rrect_t
     typedef :pointer, :sk_textblob_t
@@ -118,6 +121,29 @@ module Skia
     enum :sk_path_direction_t, [
       :cw,  0,
       :ccw, 1
+    ]
+
+    enum :sk_pathop_t, [
+      :difference,         0,
+      :intersect,          1,
+      :union,              2,
+      :xor,                3,
+      :reverse_difference, 4
+    ]
+
+    enum :sk_pathmeasure_matrixflags_t, [
+      :position,             1,
+      :tangent,              2,
+      :position_and_tangent, 3
+    ]
+
+    enum :sk_region_op_t, [
+      :difference,         0,
+      :intersect,          1,
+      :union,              2,
+      :xor,                3,
+      :reverse_difference, 4,
+      :replace,            5
     ]
 
     enum :sk_clipop_t, [

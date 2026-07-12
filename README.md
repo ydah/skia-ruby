@@ -20,7 +20,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 
 ### Native-backed (current)
 
-- `Surface` / `Canvas` / `Paint` / `Path` / `Image` / `Shader`
+- `Surface` / `Canvas` / `Paint` / `Path` / `PathMeasure` / `Region` / `Image` / `Shader`
 - Shape and path drawing (rect, rrect, arc, points, picture playback)
 - `Document` PDF output
   - file output
@@ -224,7 +224,7 @@ surface.save_png('runtime_effect.png')
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Core drawing (`Surface`/`Canvas`/`Paint`/`Path`) | Implemented | Main 2D drawing APIs are available |
+| Core drawing (`Surface`/`Canvas`/`Paint`/`Path`) | Implemented | Includes PathOps, PathMeasure, Region, clip and quick-reject APIs |
 | Shape/text primitives (`RRect`, `TextBlob`) | Implemented | Glyph-positioned drawing is supported via `TextBlob` |
 | Effects (`MaskFilter`, `ColorFilter`, `ImageFilter`, `PathEffect`) | Implemented | Exposed through Ruby wrappers and `Paint` setters |
 | Pixel and color APIs (`Bitmap`, `Pixmap`, `ImageInfo`, `ColorSpace`) | Implemented | Read/copy/access pixel-level data |

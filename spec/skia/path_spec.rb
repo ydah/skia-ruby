@@ -159,6 +159,38 @@ RSpec.describe Skia::Path do
     end
   end
 
+  describe 'path operations' do
+    let(:left) { described_class.new.add_rect(Skia::Rect.from_xywh(0, 0, 10, 10)) }
+    let(:right) { described_class.new.add_rect(Skia::Rect.from_xywh(5, 0, 10, 10)) }
+
+    it 'unions paths' do
+      result = left.union(right)
+
+      expect(result.contains?(2, 5)).to be true
+      expect(result.contains?(12, 5)).to be true
+      expect(result.tight_bounds).to eq(Skia::Rect.from_xywh(0, 0, 15, 10))
+    end
+
+    it 'intersects paths' do
+      result = left.intersect(right)
+
+      expect(result.contains?(7, 5)).to be true
+      expect(result.contains?(2, 5)).to be false
+    end
+
+    it 'computes differences and xor' do
+      expect(left.difference(right).contains?(2, 5)).to be true
+      expect(left.xor(right).contains?(7, 5)).to be false
+    end
+
+    it 'simplifies paths and serializes SVG path data' do
+      path = left.clone.add_path(left)
+
+      expect(path.simplify).to be_a(described_class)
+      expect(left.to_svg_string).to include('M')
+    end
+  end
+
   describe '#fill_type' do
     it 'defaults to winding' do
       expect(path.fill_type).to eq(:winding)

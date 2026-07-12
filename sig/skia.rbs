@@ -29,6 +29,7 @@ module Skia
     def null?: () -> bool
     def closed?: () -> bool
     def close: () -> self
+    def dispose: () -> self
   end
 
   class Color
@@ -73,8 +74,19 @@ module Skia
     def empty?: () -> bool
   end
 
-  class IRect < Rect
+  class IRect
+    attr_reader left: Integer
+    attr_reader top: Integer
+    attr_reader right: Integer
+    attr_reader bottom: Integer
+
+    def initialize: (?Numeric left, ?Numeric top, ?Numeric right, ?Numeric bottom) -> void
     def self.from_xywh: (Numeric x, Numeric y, Numeric width, Numeric height) -> IRect
+    def self.from_wh: (Numeric width, Numeric height) -> IRect
+    def width: () -> Integer
+    def height: () -> Integer
+    def empty?: () -> bool
+    def to_rect: () -> Rect
   end
 
   class RRect < Base
@@ -146,6 +158,8 @@ module Skia
     def clip_rect: (Rect rect, ?Symbol operation, ?antialias: bool) -> Canvas
     def clip_path: (Path path, ?Symbol operation, ?antialias: bool) -> Canvas
     def clip_rrect: (RRect rect, ?Symbol operation, ?antialias: bool) -> Canvas
+    def clip_region: (Region region, ?Symbol operation) -> Canvas
+    def quick_reject?: (Rect rect) -> bool
     def clear: (?(Color | Integer)) -> Canvas
     def draw_color: ((Color | Integer), ?Symbol blend_mode) -> Canvas
     def draw_paint: (Paint paint) -> Canvas
@@ -156,6 +170,7 @@ module Skia
     def draw_circle: (Numeric x, Numeric y, Numeric radius, Paint paint) -> Canvas
     def draw_oval: (Rect rect, Paint paint) -> Canvas
     def draw_path: (Path path, Paint paint) -> Canvas
+    def draw_region: (Region region, Paint paint) -> Canvas
     def draw_line: (Numeric x1, Numeric y1, Numeric x2, Numeric y2, Paint paint) -> Canvas
     def draw_point: (Numeric x, Numeric y, Paint paint) -> Canvas
     def draw_points: (Array[Point | [Numeric, Numeric]] points, Paint paint, ?mode: Symbol) -> Canvas
@@ -219,11 +234,58 @@ module Skia
     def empty?: () -> bool
     def count_points: () -> Integer
     def approximate_length: (?force_closed: bool, ?res_scale: Numeric) -> Float
+    def measure: (?force_closed: bool, ?res_scale: Numeric) -> PathMeasure
+    def op: (Path other, Symbol operation) -> Path?
+    def union: (Path other) -> Path?
+    def intersect: (Path other) -> Path?
+    def difference: (Path other) -> Path?
+    def xor: (Path other) -> Path?
+    def reverse_difference: (Path other) -> Path?
+    def simplify: () -> Path?
+    def tight_bounds: () -> Rect?
+    def to_svg_string: () -> String
     def contains?: (Numeric x, Numeric y) -> bool
     def transform: (Matrix matrix) -> Path
     def clone: () -> Path
     def reverse: () -> Path
     def reset: () -> Path
+  end
+
+  class PathMeasure < Base
+    def initialize: (?Path? path, ?force_closed: bool, ?res_scale: Numeric) -> void
+    def length: () -> Float
+    def contour_closed?: () -> bool
+    def path=: (Path? path) -> Path?
+    def set_path: (Path? path, ?force_closed: bool) -> PathMeasure
+    def position_tangent: (Numeric distance) -> [Point, Point]?
+    def position: (Numeric distance) -> Point?
+    def tangent: (Numeric distance) -> Point?
+    def matrix: (Numeric distance, ?flags: Symbol) -> Matrix?
+    def next_contour: () -> bool
+  end
+
+  class Region < Base
+    include Enumerable[IRect]
+
+    def initialize: (?IRect | Region | Path source) -> void
+    def empty?: () -> bool
+    def rect?: () -> bool
+    def complex?: () -> bool
+    def bounds: () -> IRect
+    def boundary_path: () -> Path?
+    def contains?: (Integer x, Integer y) -> bool
+                 | (IRect | Region value) -> bool
+    def intersects?: (IRect | Region value) -> bool
+    def quick_contains?: (IRect rect) -> bool
+    def quick_reject?: (IRect | Region value) -> bool
+    def set_empty: () -> Region
+    def set_rect: (IRect rect) -> Region
+    def set_region: (Region region) -> Region
+    def set_path: (Path path, ?clip: Region?) -> Region
+    def translate: (Numeric x, Numeric y) -> Region
+    def op: (IRect | Region value, Symbol operation) -> Region
+    def each: () { (IRect) -> void } -> Region
+             | () -> Enumerator[IRect, Region]
   end
 
   class Data < Base

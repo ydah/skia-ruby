@@ -97,6 +97,19 @@ module Skia
       self
     end
 
+    def clip_region(region, op = :intersect)
+      raise ArgumentError, 'region must be a Skia::Region' unless region.is_a?(Region)
+
+      Native.sk_canvas_clip_region(ptr, region.ptr, op)
+      self
+    end
+
+    def quick_reject?(rect)
+      raise ArgumentError, 'rect must be a Skia::Rect' unless rect.is_a?(Rect)
+
+      Native.sk_canvas_quick_reject(ptr, rect.to_struct)
+    end
+
     def clear(color = Color::TRANSPARENT)
       color_value = color.is_a?(Color) ? color.to_i : color
       Native.sk_canvas_clear(ptr, color_value)
@@ -150,6 +163,13 @@ module Skia
 
     def draw_path(path, paint)
       Native.sk_canvas_draw_path(ptr, path.ptr, paint.ptr)
+      self
+    end
+
+    def draw_region(region, paint)
+      raise ArgumentError, 'region must be a Skia::Region' unless region.is_a?(Region)
+
+      Native.sk_canvas_draw_region(ptr, region.ptr, paint.ptr)
       self
     end
 

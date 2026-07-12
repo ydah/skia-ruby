@@ -12,7 +12,7 @@ module Skia
     end
 
     def ptr
-      raise ClosedError, "#{self.class} has been closed" if closed?
+      raise ClosedError, "#{self.class} has been closed" if @ptr.nil? || @ptr.null?
 
       @ptr
     end
@@ -33,6 +33,8 @@ module Skia
       release!
     end
 
+    alias dispose close
+
     def self.release_callback(release_method, ptr)
       proc { Native.send(release_method, ptr) unless ptr.null? }
     end
@@ -44,7 +46,7 @@ module Skia
     end
 
     def release!
-      return self if closed?
+      return self if @ptr.nil? || @ptr.null?
 
       pointer = @ptr
       @ptr = nil

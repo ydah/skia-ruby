@@ -138,6 +138,59 @@ module Skia
       end
     end
 
+    def measure(force_closed: false, res_scale: 1.0)
+      PathMeasure.new(self, force_closed: force_closed, res_scale: res_scale)
+    end
+
+    def op(other, operation)
+      raise ArgumentError, 'other must be a Skia::Path' unless other.is_a?(Path)
+
+      result = self.class.new
+      return result if Native.sk_pathop_op(@ptr, other.ptr, operation, result.ptr)
+
+      result.dispose
+      nil
+    end
+
+    def union(other)
+      op(other, :union)
+    end
+
+    def intersect(other)
+      op(other, :intersect)
+    end
+
+    def difference(other)
+      op(other, :difference)
+    end
+
+    def xor(other)
+      op(other, :xor)
+    end
+
+    def reverse_difference(other)
+      op(other, :reverse_difference)
+    end
+
+    def simplify
+      result = self.class.new
+      return result if Native.sk_pathop_simplify(@ptr, result.ptr)
+
+      result.dispose
+      nil
+    end
+
+    def tight_bounds
+      rect = Native::SKRect.new
+      return nil unless Native.sk_pathop_tight_bounds(@ptr, rect)
+
+      Rect.from_struct(rect)
+    end
+
+    def to_svg_string
+      Svg.path_to_svg(self)
+    end
+
     def contains?(x, y)
       Native.sk_path_contains(@ptr, x.to_f, y.to_f)
     end

@@ -123,6 +123,22 @@ RSpec.describe Skia::Canvas do
     end
   end
 
+  describe 'region operations' do
+    let(:region) { Skia::Region.new(Skia::IRect.from_xywh(0, 0, 20, 20)) }
+    let(:paint) { Skia::Paint.new }
+
+    it 'clips and draws a region' do
+      expect(canvas.clip_region(region)).to eq(canvas)
+      expect(canvas.draw_region(region, paint)).to eq(canvas)
+    end
+
+    it 'quickly rejects rectangles outside the clip' do
+      canvas.clip_rect(Skia::Rect.from_xywh(0, 0, 10, 10))
+
+      expect(canvas.quick_reject?(Skia::Rect.from_xywh(20, 20, 5, 5))).to be true
+    end
+  end
+
   describe '#clip_path' do
     it 'clips to a path' do
       path = Skia::Path.new

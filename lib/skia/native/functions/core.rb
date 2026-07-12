@@ -52,6 +52,7 @@ module Skia
     attach_function :sk_canvas_clip_rrect_with_operation,
                     %i[sk_canvas_t sk_rrect_t sk_clipop_t bool], :void
     attach_function :sk_canvas_clip_region, %i[sk_canvas_t pointer sk_clipop_t], :void
+    attach_function :sk_canvas_quick_reject, [:sk_canvas_t, SKRect.ptr], :bool
 
     # Canvas - Draw
     attach_function :sk_canvas_draw_paint, %i[sk_canvas_t sk_paint_t], :void
@@ -75,6 +76,7 @@ module Skia
     attach_function :sk_canvas_draw_text_blob, %i[sk_canvas_t sk_textblob_t float float sk_paint_t], :void
     attach_function :sk_canvas_clear, %i[sk_canvas_t sk_color_t], :void
     attach_function :sk_canvas_draw_color, %i[sk_canvas_t sk_color_t sk_blend_mode_t], :void
+    attach_function :sk_canvas_draw_region, %i[sk_canvas_t sk_region_t sk_paint_t], :void
 
     # Paint
     attach_function :sk_paint_new, [], :sk_paint_t
@@ -138,9 +140,51 @@ module Skia
     attach_function :sk_path_count_points, [:sk_path_t], :int
     attach_function :sk_path_count_verbs, [:sk_path_t], :int
 
+    # PathOps
+    attach_function :sk_pathop_op, %i[sk_path_t sk_path_t sk_pathop_t sk_path_t], :bool
+    attach_function :sk_pathop_simplify, %i[sk_path_t sk_path_t], :bool
+    attach_function :sk_pathop_tight_bounds, [:sk_path_t, SKRect.ptr], :bool
+
     # PathMeasure
+    attach_function :sk_pathmeasure_new, [], :sk_pathmeasure_t
     attach_function :sk_pathmeasure_new_with_path, %i[sk_path_t bool float], :sk_pathmeasure_t
     attach_function :sk_pathmeasure_get_length, [:sk_pathmeasure_t], :float
+    attach_function :sk_pathmeasure_get_pos_tan,
+                    [:sk_pathmeasure_t, :float, SKPoint.ptr, SKPoint.ptr], :bool
+    attach_function :sk_pathmeasure_get_matrix,
+                    [:sk_pathmeasure_t, :float, SKMatrix.ptr, :sk_pathmeasure_matrixflags_t], :bool
+    attach_function :sk_pathmeasure_is_closed, [:sk_pathmeasure_t], :bool
+    attach_function :sk_pathmeasure_next_contour, [:sk_pathmeasure_t], :bool
+    attach_function :sk_pathmeasure_set_path, %i[sk_pathmeasure_t sk_path_t bool], :void
     attach_function :sk_pathmeasure_destroy, [:sk_pathmeasure_t], :void
+
+    # Region
+    attach_function :sk_region_new, [], :sk_region_t
+    attach_function :sk_region_delete, [:sk_region_t], :void
+    attach_function :sk_region_is_empty, [:sk_region_t], :bool
+    attach_function :sk_region_is_rect, [:sk_region_t], :bool
+    attach_function :sk_region_is_complex, [:sk_region_t], :bool
+    attach_function :sk_region_get_bounds, [:sk_region_t, SKIRect.ptr], :void
+    attach_function :sk_region_get_boundary_path, %i[sk_region_t sk_path_t], :bool
+    attach_function :sk_region_contains, %i[sk_region_t sk_region_t], :bool
+    attach_function :sk_region_contains_point, %i[sk_region_t int int], :bool
+    attach_function :sk_region_contains_rect, [:sk_region_t, SKIRect.ptr], :bool
+    attach_function :sk_region_intersects, %i[sk_region_t sk_region_t], :bool
+    attach_function :sk_region_intersects_rect, [:sk_region_t, SKIRect.ptr], :bool
+    attach_function :sk_region_quick_contains, [:sk_region_t, SKIRect.ptr], :bool
+    attach_function :sk_region_quick_reject, %i[sk_region_t sk_region_t], :bool
+    attach_function :sk_region_quick_reject_rect, [:sk_region_t, SKIRect.ptr], :bool
+    attach_function :sk_region_set_empty, [:sk_region_t], :bool
+    attach_function :sk_region_set_rect, [:sk_region_t, SKIRect.ptr], :bool
+    attach_function :sk_region_set_region, %i[sk_region_t sk_region_t], :bool
+    attach_function :sk_region_set_path, %i[sk_region_t sk_path_t sk_region_t], :bool
+    attach_function :sk_region_translate, %i[sk_region_t int int], :void
+    attach_function :sk_region_op, %i[sk_region_t sk_region_t sk_region_op_t], :bool
+    attach_function :sk_region_op_rect, [:sk_region_t, SKIRect.ptr, :sk_region_op_t], :bool
+    attach_function :sk_region_iterator_new, [:sk_region_t], :sk_region_iterator_t
+    attach_function :sk_region_iterator_delete, [:sk_region_iterator_t], :void
+    attach_function :sk_region_iterator_done, [:sk_region_iterator_t], :bool
+    attach_function :sk_region_iterator_next, [:sk_region_iterator_t], :void
+    attach_function :sk_region_iterator_rect, [:sk_region_iterator_t, SKIRect.ptr], :void
   end
 end
