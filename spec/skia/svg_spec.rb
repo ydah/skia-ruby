@@ -38,6 +38,22 @@ RSpec.describe Skia::Svg do
     end
   end
 
+  describe '.render' do
+    it 'renders drawing commands to SVG data' do
+      data = described_class.render(80, 60) do |canvas|
+        paint = Skia::Paint.new
+        paint.color = Skia::Color::RED
+        canvas.draw_circle(40, 30, 20, paint)
+      end
+
+      expect(data.to_s).to include('<svg', '<ellipse')
+    end
+
+    it 'requires a drawing block' do
+      expect { described_class.render(80, 60) }.to raise_error(ArgumentError)
+    end
+  end
+
   describe Skia::Svg::Dom do
     it 'loads and draws a simple SVG path' do
       dom = described_class.from_svg(sample_svg)

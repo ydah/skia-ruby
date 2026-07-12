@@ -64,6 +64,34 @@ module Skia
         end
       end
 
+      def render(width, height)
+        raise ArgumentError, 'a drawing block is required' unless block_given?
+
+        register_native_symbols!
+        ensure_native_function!(:sk_svgcanvas_create_with_stream, '.render')
+        stream = Native.sk_dynamicmemorywstream_new
+        raise Error, 'Failed to create SVG output stream' if stream.nil? || stream.null?
+
+        canvas = create_canvas(Rect.from_wh(width, height), stream)
+        begin
+          yield canvas
+          canvas.close
+          data_ptr = Native.sk_dynamicmemorywstream_detach_as_data(stream)
+          raise Error, 'Failed to create SVG data' if data_ptr.nil? || data_ptr.null?
+
+          Data.new(data_ptr)
+        ensure
+          canvas&.close
+          Native.sk_dynamicmemorywstream_destroy(stream)
+        end
+      end
+
+      def save(path, width:, height:, &)
+        data = render(width, height, &)
+        File.binwrite(path, data.to_s)
+        path
+      end
+
       def parse_color(value)
         return nil if value.nil?
 
@@ -106,6 +134,13 @@ module Skia
         return '' if cstr.nil? || cstr.null? || size.to_i.zero?
 
         cstr.read_string(size)
+      end
+
+      def create_canvas(bounds, stream)
+        ptr = Native.sk_svgcanvas_create_with_stream(bounds.to_struct, stream)
+        raise Error, 'Failed to create SVG canvas' if ptr.nil? || ptr.null?
+
+        Canvas.new(ptr, owner: stream, release_method: :sk_canvas_destroy)
       end
     end
 

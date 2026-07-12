@@ -202,6 +202,47 @@ RSpec.describe Skia::Canvas do
     end
   end
 
+  describe 'mesh and sprite drawing' do
+    let(:paint) do
+      Skia::Paint.new.tap { |value| value.color = Skia::Color::RED }
+    end
+
+    it 'draws vertices' do
+      vertices = Skia::Vertices.make_copy(
+        :triangles,
+        [[0, 0], [50, 0], [0, 50]],
+        colors: [Skia::Color::RED, Skia::Color::GREEN, Skia::Color::BLUE]
+      )
+
+      expect(canvas.draw_vertices(vertices, paint)).to eq(canvas)
+    end
+
+    it 'draws an image atlas' do
+      atlas_surface = Skia::Surface.make_raster(10, 10)
+      atlas_surface.canvas.clear(Skia::Color::BLUE)
+      atlas = atlas_surface.snapshot
+
+      expect(
+        canvas.draw_atlas(
+          atlas,
+          sprites: [Skia::Rect.from_wh(10, 10)],
+          transforms: [Skia::RotationScaleMatrix.translation(5, 5)]
+        )
+      ).to eq(canvas)
+    end
+
+    it 'draws a cubic patch' do
+      cubics = [
+        [0, 0], [3, 0], [7, 0], [10, 0],
+        [10, 3], [10, 7], [10, 10],
+        [7, 10], [3, 10], [0, 10],
+        [0, 7], [0, 3]
+      ]
+
+      expect(canvas.draw_patch(cubics, paint)).to eq(canvas)
+    end
+  end
+
   describe '#draw_path' do
     it 'draws a path' do
       path = Skia::Path.build do

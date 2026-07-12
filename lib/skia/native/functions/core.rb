@@ -32,6 +32,7 @@ module Skia
     attach_function :sk_canvas_restore, [:sk_canvas_t], :void
     attach_function :sk_canvas_restore_to_count, %i[sk_canvas_t int], :void
     attach_function :sk_canvas_get_save_count, [:sk_canvas_t], :int
+    attach_function :sk_canvas_destroy, [:sk_canvas_t], :void
 
     # Canvas - Transform
     attach_function :sk_canvas_translate, %i[sk_canvas_t float float], :void
@@ -65,9 +66,10 @@ module Skia
     attach_function :sk_canvas_draw_oval, [:sk_canvas_t, SKRect.ptr, :sk_paint_t], :void
     attach_function :sk_canvas_draw_path, %i[sk_canvas_t sk_path_t sk_paint_t], :void
     attach_function :sk_canvas_draw_picture, [:sk_canvas_t, :sk_picture_t, SKMatrix.ptr, :sk_paint_t], :void
-    attach_function :sk_canvas_draw_image, %i[sk_canvas_t sk_image_t float float sk_paint_t], :void
+    attach_function :sk_canvas_draw_image,
+                    [:sk_canvas_t, :sk_image_t, :float, :float, SKSamplingOptions.ptr, :sk_paint_t], :void
     attach_function :sk_canvas_draw_image_rect,
-                    [:sk_canvas_t, :sk_image_t, SKRect.ptr, SKRect.ptr, :sk_paint_t], :void
+                    [:sk_canvas_t, :sk_image_t, SKRect.ptr, SKRect.ptr, SKSamplingOptions.ptr, :sk_paint_t], :void
     attach_function :sk_canvas_draw_line, %i[sk_canvas_t float float float float sk_paint_t], :void
     attach_function :sk_canvas_draw_point, %i[sk_canvas_t float float sk_paint_t], :void
     attach_function :sk_canvas_draw_points, %i[sk_canvas_t sk_point_mode_t size_t pointer sk_paint_t], :void
@@ -77,6 +79,13 @@ module Skia
     attach_function :sk_canvas_clear, %i[sk_canvas_t sk_color_t], :void
     attach_function :sk_canvas_draw_color, %i[sk_canvas_t sk_color_t sk_blend_mode_t], :void
     attach_function :sk_canvas_draw_region, %i[sk_canvas_t sk_region_t sk_paint_t], :void
+    attach_function :sk_canvas_draw_vertices,
+                    %i[sk_canvas_t sk_vertices_t sk_blend_mode_t sk_paint_t], :void
+    attach_function :sk_canvas_draw_atlas,
+                    [:sk_canvas_t, :sk_image_t, :pointer, :pointer, :pointer, :int, :sk_blend_mode_t,
+                     SKSamplingOptions.ptr, SKRect.ptr, :sk_paint_t], :void
+    attach_function :sk_canvas_draw_patch,
+                    %i[sk_canvas_t pointer pointer pointer sk_blend_mode_t sk_paint_t], :void
 
     # Paint
     attach_function :sk_paint_new, [], :sk_paint_t
@@ -186,5 +195,10 @@ module Skia
     attach_function :sk_region_iterator_done, [:sk_region_iterator_t], :bool
     attach_function :sk_region_iterator_next, [:sk_region_iterator_t], :void
     attach_function :sk_region_iterator_rect, [:sk_region_iterator_t, SKIRect.ptr], :void
+
+    # Vertices
+    attach_function :sk_vertices_make_copy,
+                    %i[sk_vertices_vertex_mode_t int pointer pointer pointer int pointer], :sk_vertices_t
+    attach_function :sk_vertices_unref, [:sk_vertices_t], :void
   end
 end

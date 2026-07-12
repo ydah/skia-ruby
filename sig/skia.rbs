@@ -102,6 +102,26 @@ module Skia
     def self.rotation: (Numeric degrees) -> Matrix
   end
 
+  class SamplingOptions
+    attr_reader filter: Symbol
+    attr_reader mipmap: Symbol
+    attr_reader cubic_b: Float?
+    attr_reader cubic_c: Float?
+    attr_reader max_anisotropy: Integer
+
+    def initialize: (?filter: Symbol, ?mipmap: Symbol, ?cubic_b: Numeric?, ?cubic_c: Numeric?, ?max_anisotropy: Integer) -> void
+    def self.default: () -> SamplingOptions
+    def self.linear: (?mipmap: Symbol) -> SamplingOptions
+    def self.cubic: (?b: Numeric, ?c: Numeric) -> SamplingOptions
+  end
+
+  class RotationScaleMatrix
+    def initialize: (Numeric scale_cosine, Numeric scale_sine, Numeric translate_x, Numeric translate_y) -> void
+    def self.identity: () -> RotationScaleMatrix
+    def self.translation: (Numeric x, Numeric y) -> RotationScaleMatrix
+    def self.create: (scale: Numeric, radians: Numeric, translate_x: Numeric, translate_y: Numeric, ?anchor_x: Numeric, ?anchor_y: Numeric) -> RotationScaleMatrix
+  end
+
   class ImageInfo
     attr_reader width: Integer
     attr_reader height: Integer
@@ -174,8 +194,11 @@ module Skia
     def draw_line: (Numeric x1, Numeric y1, Numeric x2, Numeric y2, Paint paint) -> Canvas
     def draw_point: (Numeric x, Numeric y, Paint paint) -> Canvas
     def draw_points: (Array[Point | [Numeric, Numeric]] points, Paint paint, ?mode: Symbol) -> Canvas
-    def draw_image: (Image image, Numeric x, Numeric y, ?Paint? paint) -> Canvas
-    def draw_image_rect: (Image image, Rect? source, Rect destination, ?Paint? paint) -> Canvas
+    def draw_image: (Image image, Numeric x, Numeric y, ?Paint? paint, ?sampling: SamplingOptions) -> Canvas
+    def draw_image_rect: (Image image, Rect? source, Rect destination, ?Paint? paint, ?sampling: SamplingOptions) -> Canvas
+    def draw_vertices: (Vertices vertices, Paint paint, ?blend_mode: Symbol) -> Canvas
+    def draw_atlas: (Image atlas, sprites: Array[Rect], transforms: Array[RotationScaleMatrix], ?colors: Array[Color | Integer]?, ?blend_mode: Symbol, ?sampling: SamplingOptions, ?cull_rect: Rect?, ?paint: Paint?) -> Canvas
+    def draw_patch: (Array[Point | [Numeric, Numeric]] cubics, Paint paint, ?colors: Array[Color | Integer]?, ?texture_coords: Array[Point | [Numeric, Numeric]]?, ?blend_mode: Symbol) -> Canvas
     def draw_text: (String text, Numeric x, Numeric y, Font font, Paint paint) -> Canvas
     def with_save: () { (Canvas) -> untyped } -> untyped
     def with_save_layer: (?Rect? bounds, ?Paint? paint) { (Canvas) -> untyped } -> untyped
@@ -309,7 +332,9 @@ module Skia
     def alpha_type: () -> Symbol
     def color_space: () -> ColorSpace
     def encoded_data: () -> Data
-    def make_shader: (?tile_x: Symbol, ?tile_y: Symbol, ?matrix: Matrix?) -> Shader
+    def make_shader: (?tile_x: Symbol, ?tile_y: Symbol, ?sampling: SamplingOptions, ?matrix: Matrix?) -> Shader
+    def resize: (Numeric width, Numeric height, ?sampling: SamplingOptions) -> Image
+    def scale: (Numeric factor, ?sampling: SamplingOptions) -> Image
     def subset: (IRect rect) -> Image?
     def read_pixels: (**untyped options) -> String
     def peek_pixels: () -> Pixmap?
@@ -326,6 +351,10 @@ module Skia
     def read_pixels: (ImageInfo info, ?src_x: Integer, ?src_y: Integer, ?row_bytes: Integer?) -> String
     def extract_subset: (IRect rect) -> Pixmap?
     def reset: () -> Pixmap
+  end
+
+  class Vertices < Base
+    def self.make_copy: (Symbol mode, Array[Point | [Numeric, Numeric]] positions, ?texture_coords: Array[Point | [Numeric, Numeric]]?, ?colors: Array[Color | Integer]?, ?indices: Array[Integer]?) -> Vertices
   end
 
   class Bitmap < Base
@@ -357,5 +386,13 @@ module Skia
 
   class Font < Base
     def initialize: (?Typeface? typeface, ?Numeric size, ?Numeric scale_x, ?Numeric skew_x) -> void
+  end
+
+
+  module Svg
+    def self.parse_path: (String data) -> Path
+    def self.path_to_svg: (Path path) -> String
+    def self.render: (Numeric width, Numeric height) { (Canvas) -> void } -> Data
+    def self.save: (String path, width: Numeric, height: Numeric) { (Canvas) -> void } -> String
   end
 end

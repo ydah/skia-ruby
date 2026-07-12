@@ -164,6 +164,12 @@ module Skia
       :polygon, 2
     ]
 
+    enum :sk_vertices_vertex_mode_t, [
+      :triangles,      0,
+      :triangle_strip, 1,
+      :triangle_fan,   2
+    ]
+
     enum :sk_image_caching_hint_t, [
       :allow,    0,
       :disallow, 1
@@ -334,6 +340,13 @@ module Skia
              :fCubicC,   :float,
              :fFilter,   :sk_filter_mode_t,
              :fMipmap,   :sk_mipmap_mode_t
+    end
+
+    class SKRotationScaleMatrix < FFI::Struct
+      layout :scos, :float,
+             :ssin, :float,
+             :tx,   :float,
+             :ty,   :float
     end
 
     # sk_textblob_builder_runbuffer_t

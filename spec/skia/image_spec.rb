@@ -107,6 +107,28 @@ RSpec.describe Skia::Image do
     end
   end
 
+  describe '#resize and #scale' do
+    it 'resizes an image with sampling options' do
+      surface.canvas.clear(Skia::Color::RED)
+      resized = image.resize(25, 40, sampling: Skia::SamplingOptions.cubic)
+
+      expect(resized.width).to eq(25)
+      expect(resized.height).to eq(40)
+      expect(resized.read_pixels(width: 1, height: 1)).to eq("\xFF\x00\x00\xFF".b)
+    end
+
+    it 'scales proportionally' do
+      scaled = image.scale(0.5)
+
+      expect([scaled.width, scaled.height]).to eq([50, 50])
+    end
+
+    it 'rejects invalid dimensions and factors' do
+      expect { image.resize(0, 10) }.to raise_error(ArgumentError)
+      expect { image.scale(-1) }.to raise_error(ArgumentError)
+    end
+  end
+
   describe '#read_pixels' do
     it 'reads pixel bytes from the image' do
       surface.canvas.clear(Skia::Color::BLUE)

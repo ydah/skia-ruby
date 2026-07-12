@@ -62,20 +62,32 @@ module Skia
       Data.new(ptr)
     end
 
-    def make_shader(tile_x: :clamp, tile_y: :clamp, matrix: nil)
+    def make_shader(tile_x: :clamp, tile_y: :clamp, sampling: SamplingOptions.default, matrix: nil)
       matrix_struct = matrix&.to_struct
-      sampling = Native::SKSamplingOptions.new
-      sampling[:fMaxAniso] = 0
-      sampling[:fUseCubic] = 0
-      sampling[:fCubicB] = 0.0
-      sampling[:fCubicC] = 0.0
-      sampling[:fFilter] = :nearest
-      sampling[:fMipmap] = :none
 
-      ptr = Native.sk_image_make_shader(@ptr, tile_x, tile_y, sampling, matrix_struct)
+      ptr = Native.sk_image_make_shader(@ptr, tile_x, tile_y, sampling.to_struct, matrix_struct)
       raise Error, 'Failed to create shader from image' if ptr.nil? || ptr.null?
 
       Shader.new(ptr)
+    end
+
+    def resize(width, height, sampling: SamplingOptions.linear)
+      target_width = Integer(width)
+      target_height = Integer(height)
+      raise ArgumentError, 'width and height must be positive' unless target_width.positive? && target_height.positive?
+
+      Surface.make_raster(target_width, target_height, color_type: color_type, alpha_type: alpha_type) do |surface|
+        destination = Rect.from_wh(target_width, target_height)
+        surface.canvas.draw_image_rect(self, nil, destination, sampling: sampling)
+        surface.snapshot
+      end
+    end
+
+    def scale(factor, sampling: SamplingOptions.linear)
+      scale_factor = Float(factor)
+      raise ArgumentError, 'factor must be positive' unless scale_factor.positive?
+
+      resize((width * scale_factor).round, (height * scale_factor).round, sampling: sampling)
     end
 
     def subset(rect)

@@ -22,6 +22,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 
 - `Surface` / `Canvas` / `Paint` / `Path` / `PathMeasure` / `Region` / `Image` / `Shader`
 - Shape and path drawing (rect, rrect, arc, points, picture playback)
+- Mesh and sprite drawing (`draw_vertices`, `draw_atlas`, `draw_patch`)
 - `Document` PDF output
   - file output
   - memory stream output
@@ -30,6 +31,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 - `RuntimeEffect` (SkSL compile and shader creation)
 - `Skottie` (Lottie JSON animation load/seek/render)
 - Encoders (`PNG`, `JPEG`, `WEBP`)
+- SVG canvas output and sampled image resize/scale helpers
 
 ### Ruby layer (current)
 

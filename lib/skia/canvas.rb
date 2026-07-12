@@ -2,8 +2,8 @@
 
 module Skia
   class Canvas < Base
-    def initialize(ptr, owner: nil)
-      super(ptr, nil, owner: owner)
+    def initialize(ptr, owner: nil, release_method: nil)
+      super(ptr, release_method, owner: owner)
     end
 
     def save
@@ -205,15 +205,50 @@ module Skia
       self
     end
 
-    def draw_image(image, x, y, paint = nil)
-      Native.sk_canvas_draw_image(ptr, image.ptr, x.to_f, y.to_f, paint&.ptr)
+    def draw_image(image, x, y, paint = nil, sampling: SamplingOptions.default)
+      Native.sk_canvas_draw_image(ptr, image.ptr, x.to_f, y.to_f, sampling.to_struct, paint&.ptr)
       self
     end
 
-    def draw_image_rect(image, src_rect, dst_rect, paint = nil)
+    def draw_image_rect(image, src_rect, dst_rect, paint = nil, sampling: SamplingOptions.default)
       src_struct = src_rect&.to_struct
       dst_struct = dst_rect.to_struct
-      Native.sk_canvas_draw_image_rect(ptr, image.ptr, src_struct, dst_struct, paint&.ptr)
+      Native.sk_canvas_draw_image_rect(ptr, image.ptr, src_struct, dst_struct, sampling.to_struct, paint&.ptr)
+      self
+    end
+
+    def draw_vertices(vertices, paint, blend_mode: :modulate)
+      raise ArgumentError, 'vertices must be Skia::Vertices' unless vertices.is_a?(Vertices)
+
+      Native.sk_canvas_draw_vertices(ptr, vertices.ptr, blend_mode, paint.ptr)
+      self
+    end
+
+    def draw_atlas(atlas, sprites:, transforms:, colors: nil, blend_mode: :dst, sampling: SamplingOptions.default,
+                   cull_rect: nil, paint: nil)
+      raise ArgumentError, 'atlas must be a Skia::Image' unless atlas.is_a?(Image)
+      raise ArgumentError, 'sprites and transforms must have the same length' unless sprites.length == transforms.length
+      raise ArgumentError, 'colors and sprites must have the same length' if colors && colors.length != sprites.length
+      return self if sprites.empty?
+
+      sprite_ptr = struct_array(Native::SKRect, sprites, &:to_struct)
+      transform_ptr = struct_array(Native::SKRotationScaleMatrix, transforms, &:to_struct)
+      color_ptr = color_array(colors)
+      Native.sk_canvas_draw_atlas(
+        ptr, atlas.ptr, transform_ptr, sprite_ptr, color_ptr, sprites.length, blend_mode,
+        sampling.to_struct, cull_rect&.to_struct, paint&.ptr
+      )
+      self
+    end
+
+    def draw_patch(cubics, paint, colors: nil, texture_coords: nil, blend_mode: :modulate)
+      raise ArgumentError, 'cubics must contain exactly 12 points' unless cubics.length == 12
+      raise ArgumentError, 'colors must contain exactly 4 colors' if colors && colors.length != 4
+      raise ArgumentError, 'texture_coords must contain exactly 4 points' if texture_coords && texture_coords.length != 4
+
+      cubic_ptr = struct_array(Native::SKPoint, cubics) { |point| coerce_point(point).to_struct }
+      texture_ptr = struct_array(Native::SKPoint, texture_coords) { |point| coerce_point(point).to_struct }
+      Native.sk_canvas_draw_patch(ptr, cubic_ptr, color_array(colors), texture_ptr, blend_mode, paint.ptr)
       self
     end
 
@@ -254,6 +289,26 @@ module Skia
       return Point.new(point[0], point[1]) if point.is_a?(Array) && point.length == 2
 
       raise ArgumentError, 'point must be Skia::Point or [x, y]'
+    end
+
+    def struct_array(struct_class, values)
+      return nil if values.nil?
+
+      pointer = FFI::MemoryPointer.new(struct_class, values.length)
+      values.each_with_index do |value, index|
+        destination = struct_class.new(pointer + (index * struct_class.size))
+        destination.to_ptr.write_bytes(yield(value).to_ptr.read_bytes(struct_class.size))
+      end
+      pointer
+    end
+
+    def color_array(colors)
+      return nil if colors.nil?
+
+      values = colors.map { |color| color.is_a?(Color) ? color.to_i : color }
+      pointer = FFI::MemoryPointer.new(:uint32, values.length)
+      pointer.write_array_of_uint32(values)
+      pointer
     end
   end
 end
