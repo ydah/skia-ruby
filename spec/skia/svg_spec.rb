@@ -74,5 +74,26 @@ RSpec.describe Skia::Svg do
     it 'raises on invalid SVG input' do
       expect { described_class.from_svg('<svg><path d="M 0 0"') }.to raise_error(Skia::Error)
     end
+
+    it 'draws basic shapes, grouped elements, and text' do
+      svg = <<~SVG
+        <svg width="120" height="80">
+          <g>
+            <rect x="2" y="2" width="20" height="10" fill="#ff0000" />
+            <circle cx="40" cy="20" r="10" fill="#00ff00" />
+            <ellipse cx="70" cy="20" rx="12" ry="8" fill="#0000ff" />
+            <line x1="0" y1="40" x2="100" y2="40" stroke="#000000" stroke-width="2" />
+            <polygon points="5,70 20,50 35,70" fill="#ffff00" />
+            <polyline points="45,70 60,50 75,70" stroke="#ff00ff" />
+            <text x="80" y="65" font-size="12" fill="#000000">SVG &amp; Ruby</text>
+          </g>
+        </svg>
+      SVG
+      dom = described_class.from_svg(svg)
+      surface = Skia::Surface.make_raster(120, 80)
+
+      expect(dom.paths.length).to eq(7)
+      expect { dom.draw(surface.canvas) }.not_to raise_error
+    end
   end
 end

@@ -19,7 +19,10 @@ module Skia
       'transparent' => Color::TRANSPARENT
     }.freeze
 
-    PathNode = Struct.new(:path_data, :fill, :stroke, :stroke_width, keyword_init: true)
+    PathNode = Struct.new(
+      :path_data, :fill, :stroke, :stroke_width, :text, :x, :y, :font_size,
+      keyword_init: true
+    )
 
     class << self
       def available?
@@ -159,19 +162,7 @@ module Skia
         width = parse_length(root_attributes['width']) || parse_view_box(root_attributes['viewBox'], 2)
         height = parse_length(root_attributes['height']) || parse_view_box(root_attributes['viewBox'], 3)
 
-        path_nodes = []
-        source.scan(%r{<path\b([^>]*)/?>}im).each do |match|
-          attributes = parse_attributes(match.first.to_s)
-          path_data = attributes['d']
-          next if path_data.nil? || path_data.strip.empty?
-
-          path_nodes << PathNode.new(
-            path_data: path_data,
-            fill: Svg.parse_color(attributes['fill']),
-            stroke: Svg.parse_color(attributes['stroke']),
-            stroke_width: parse_length(attributes['stroke-width'])
-          )
-        end
+        path_nodes = extract_nodes(source)
 
         new(width: width, height: height, paths: path_nodes)
       end
@@ -188,10 +179,13 @@ module Skia
 
       def draw(canvas, x: 0.0, y: 0.0, paint: nil)
         @paths.each do |node|
-          path = Svg.parse_path(node.path_data)
           canvas.with_save do
             canvas.translate(x.to_f, y.to_f)
-            render_path(canvas, path, node, paint)
+            if node.text
+              render_text(canvas, node, paint)
+            else
+              render_path(canvas, Svg.parse_path(node.path_data), node, paint)
+            end
           end
         end
 
@@ -199,6 +193,15 @@ module Skia
       end
 
       private
+
+      def render_text(canvas, node, override_paint)
+        text_paint = override_paint || Paint.new
+        unless override_paint
+          text_paint.antialias = true
+          text_paint.color = node.fill || Color::BLACK
+        end
+        canvas.draw_text(node.text, node.x || 0, node.y || 0, Font.new(nil, node.font_size || 16), text_paint)
+      end
 
       def render_path(canvas, path, node, override_paint)
         if override_paint
@@ -256,6 +259,121 @@ module Skia
           attributes[name] = double_quoted || single_quoted || ''
         end
         attributes
+      end
+
+      def self.extract_nodes(source)
+        nodes = []
+        source.scan(%r{<path\b([^>]*)/?>}im).each do |match|
+          attributes = parse_attributes(match.first.to_s)
+          add_path_node(nodes, attributes, attributes['d'])
+        end
+        extract_rects(source, nodes)
+        extract_circles(source, nodes)
+        extract_ellipses(source, nodes)
+        extract_lines(source, nodes)
+        extract_polygons(source, nodes)
+        extract_text(source, nodes)
+        nodes
+      end
+
+      def self.extract_rects(source, nodes)
+        source.scan(%r{<rect\b([^>]*)/?>}im).each do |match|
+          attributes = parse_attributes(match.first.to_s)
+          x = parse_length(attributes['x']) || 0
+          y = parse_length(attributes['y']) || 0
+          width = parse_length(attributes['width'])
+          height = parse_length(attributes['height'])
+          next unless width&.positive? && height&.positive?
+
+          add_path_node(nodes, attributes, "M #{x} #{y} H #{x + width} V #{y + height} H #{x} Z")
+        end
+      end
+
+      def self.extract_circles(source, nodes)
+        source.scan(%r{<circle\b([^>]*)/?>}im).each do |match|
+          attributes = parse_attributes(match.first.to_s)
+          center_x = parse_length(attributes['cx']) || 0
+          center_y = parse_length(attributes['cy']) || 0
+          radius = parse_length(attributes['r'])
+          next unless radius&.positive?
+
+          data = "M #{center_x - radius} #{center_y} " \
+                 "A #{radius} #{radius} 0 1 0 #{center_x + radius} #{center_y} " \
+                 "A #{radius} #{radius} 0 1 0 #{center_x - radius} #{center_y} Z"
+          add_path_node(nodes, attributes, data)
+        end
+      end
+
+      def self.extract_ellipses(source, nodes)
+        source.scan(%r{<ellipse\b([^>]*)/?>}im).each do |match|
+          attributes = parse_attributes(match.first.to_s)
+          center_x = parse_length(attributes['cx']) || 0
+          center_y = parse_length(attributes['cy']) || 0
+          radius_x = parse_length(attributes['rx'])
+          radius_y = parse_length(attributes['ry'])
+          next unless radius_x&.positive? && radius_y&.positive?
+
+          data = "M #{center_x - radius_x} #{center_y} " \
+                 "A #{radius_x} #{radius_y} 0 1 0 #{center_x + radius_x} #{center_y} " \
+                 "A #{radius_x} #{radius_y} 0 1 0 #{center_x - radius_x} #{center_y} Z"
+          add_path_node(nodes, attributes, data)
+        end
+      end
+
+      def self.extract_lines(source, nodes)
+        source.scan(%r{<line\b([^>]*)/?>}im).each do |match|
+          attributes = parse_attributes(match.first.to_s)
+          x1 = parse_length(attributes['x1']) || 0
+          y1 = parse_length(attributes['y1']) || 0
+          x2 = parse_length(attributes['x2']) || 0
+          y2 = parse_length(attributes['y2']) || 0
+          add_path_node(nodes, attributes, "M #{x1} #{y1} L #{x2} #{y2}")
+        end
+      end
+
+      def self.extract_polygons(source, nodes)
+        source.scan(%r{<(polyline|polygon)\b([^>]*)/?>}im).each do |tag, attribute_source|
+          attributes = parse_attributes(attribute_source)
+          points = attributes['points'].to_s.scan(/-?\d+(?:\.\d+)?/).map(&:to_f).each_slice(2).to_a
+          next if points.empty? || points.any? { |point| point.length != 2 }
+
+          data = "M #{points.first.join(' ')} "
+          data += points.drop(1).map { |point| "L #{point.join(' ')}" }.join(' ')
+          data += ' Z' if tag.downcase == 'polygon'
+          add_path_node(nodes, attributes, data)
+        end
+      end
+
+      def self.extract_text(source, nodes)
+        source.scan(%r{<text\b([^>]*)>(.*?)</text>}im).each do |attribute_source, content|
+          attributes = parse_attributes(attribute_source)
+          nodes << styled_node(
+            attributes,
+            text: decode_entities(content.gsub(/<[^>]+>/, '').strip),
+            x: parse_length(attributes['x']) || 0,
+            y: parse_length(attributes['y']) || 0,
+            font_size: parse_length(attributes['font-size']) || 16
+          )
+        end
+      end
+
+      def self.add_path_node(nodes, attributes, path_data)
+        return if path_data.nil? || path_data.strip.empty?
+
+        nodes << styled_node(attributes, path_data: path_data)
+      end
+
+      def self.styled_node(attributes, **values)
+        PathNode.new(
+          **values,
+          fill: Svg.parse_color(attributes['fill']),
+          stroke: Svg.parse_color(attributes['stroke']),
+          stroke_width: parse_length(attributes['stroke-width'])
+        )
+      end
+
+      def self.decode_entities(value)
+        value.gsub('&lt;', '<').gsub('&gt;', '>').gsub('&quot;', '"').gsub('&apos;', "'").gsub('&amp;', '&')
       end
     end
   end

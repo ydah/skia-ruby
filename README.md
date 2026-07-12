@@ -234,7 +234,7 @@ surface.save_png('runtime_effect.png')
 | Image and shader extensions | Implemented | Includes gradients and runtime shader compilation |
 | PDF document APIs | Implemented | File/memory output and metadata are supported |
 | `skottie` (Lottie) | Implemented | JSON load/seek/render plus font manager and resource-provider builders |
-| SVG path / SVG DOM | Implemented | `Skia::Svg.parse_path`, `Skia::Svg::Dom` (`<path>` focused) |
+| SVG path / SVG DOM | Implemented | SVG canvas output plus path, basic shape, group-content, and text rendering |
 | GPU-oriented surface constructors | Partial | Requires externally managed native GPU context pointers |
 | Text layout modules (`skunicode`, `skshaper`, `skparagraph`) | Partial | Ruby API is available; native symbols may be absent depending on `libSkiaSharp` build |
 
