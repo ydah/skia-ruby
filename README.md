@@ -41,7 +41,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 - Effect wrappers
   - `MaskFilter`, color-matrix/table `ColorFilter`, `ImageFilter`, `PathEffect`, `Blender`
 - Pixel APIs
-  - `Bitmap`, `Pixmap`, `read_pixels` helpers
+  - `Bitmap`, `Pixmap`, `read_pixels` helpers, optional `Pixmap`/`Numo::NArray` conversion
 - Text primitives
   - `Font`, `Typeface`, `FontManager` system-font enumeration/fallback, `TextBlob`
 - Structured helpers

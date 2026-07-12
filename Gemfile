@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'numo-narray', require: false
 gem 'rake', '~> 13.0'
 gem 'rbs', require: false
 gem 'rspec', '~> 3.12'

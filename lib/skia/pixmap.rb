@@ -25,6 +25,17 @@ module Skia
       pixmap
     end
 
+    def self.from_numo(array, alpha_type: :unpremul, color_space: nil)
+      ensure_numo!
+      pixels = Numo::UInt8.cast(array)
+      shape = pixels.shape
+      raise ArgumentError, "Numo array shape must be [height, width, 4], got #{shape.inspect}" unless shape.length == 3 && shape[2] == 4
+
+      info = ImageInfo.new(width: shape[1], height: shape[0], color_type: :rgba_8888, alpha_type: alpha_type,
+                           color_space: color_space)
+      from_pixels(info, pixels.to_binary, row_bytes: info.min_row_bytes)
+    end
+
     def info
       info_struct = Native::SKImageInfo.new
       Native.sk_pixmap_get_info(@ptr, info_struct)
@@ -73,6 +84,15 @@ module Skia
       pixels.read_bytes(byte_size)
     end
 
+    def to_numo
+      self.class.ensure_numo!
+      source = info
+      rgba_info = ImageInfo.new(width: source.width, height: source.height, color_type: :rgba_8888, alpha_type: :unpremul,
+                                color_space: source.color_space)
+      bytes = read_pixels(rgba_info)
+      Numo::UInt8.from_binary(bytes).reshape(source.height, source.width, 4)
+    end
+
     def extract_subset(rect)
       irect = coerce_irect(rect)
       subset = self.class.new
@@ -96,6 +116,12 @@ module Skia
       return image_info if image_info.is_a?(ImageInfo)
 
       raise ArgumentError, 'image_info must be a Skia::ImageInfo'
+    end
+
+    def self.ensure_numo!
+      require 'numo/narray'
+    rescue LoadError
+      raise UnsupportedOperationError, 'Numo conversion requires the numo-narray gem'
     end
 
     def coerce_irect(rect)

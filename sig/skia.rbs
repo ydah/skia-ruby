@@ -388,11 +388,13 @@ module Skia
 
   class Pixmap < Base
     def self.from_pixels: (ImageInfo image_info, String | Array[Integer] pixels, ?row_bytes: Integer?) -> Pixmap
+    def self.from_numo: (untyped array, ?alpha_type: Symbol, ?color_space: ColorSpace?) -> Pixmap
     def info: () -> ImageInfo
     def row_bytes: () -> Integer
     def pixel_color: (Integer x, Integer y) -> Color
     def opaque?: () -> bool
     def read_pixels: (ImageInfo info, ?src_x: Integer, ?src_y: Integer, ?row_bytes: Integer?) -> String
+    def to_numo: () -> untyped
     def extract_subset: (IRect rect) -> Pixmap?
     def reset: () -> Pixmap
   end

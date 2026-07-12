@@ -46,4 +46,25 @@ RSpec.describe Skia::Pixmap do
       expect(pixmap.color_space).to be_srgb
     end
   end
+
+  describe 'Numo::NArray conversion' do
+    it 'round-trips RGBA pixel arrays' do
+      require 'numo/narray'
+      array = Numo::UInt8[
+        [[255, 0, 0, 255], [0, 255, 0, 255]],
+        [[0, 0, 255, 255], [255, 255, 255, 128]]
+      ]
+
+      converted = described_class.from_numo(array).to_numo
+
+      expect(converted.shape).to eq([2, 2, 4])
+      expect(converted.to_a).to eq(array.to_a)
+    end
+
+    it 'rejects arrays that are not RGBA images' do
+      require 'numo/narray'
+
+      expect { described_class.from_numo(Numo::UInt8.zeros(2, 2)) }.to raise_error(ArgumentError, /shape/)
+    end
+  end
 end
