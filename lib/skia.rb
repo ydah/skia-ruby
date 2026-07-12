@@ -43,6 +43,7 @@ require_relative 'skia/shader'
 require_relative 'skia/document'
 require_relative 'skia/picture'
 require_relative 'skia/card'
+require_relative 'skia/active_storage_transformer'
 
 module Skia
   class Error < StandardError; end

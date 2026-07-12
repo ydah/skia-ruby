@@ -39,6 +39,14 @@ module Skia
     def save: (String path, ?format: Symbol?, ?quality: Integer) -> Card
   end
 
+  class ActiveStorageTransformer
+    SUPPORTED_TRANSFORMATIONS: Array[Symbol]
+    attr_reader transformations: Hash[Symbol, untyped]
+
+    def initialize: (Hash[Symbol | String, untyped] transformations) -> void
+    def transform: (untyped file, format: Symbol | String) { (untyped) -> untyped } -> untyped
+  end
+
   class Base
     def initialize: (untyped ptr, ?Symbol? release_method, ?owner: untyped) -> void
     def ptr: () -> untyped

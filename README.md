@@ -182,6 +182,15 @@ Skia::Card.new(
 ).save('social-card.png')
 ```
 
+For Rails Active Storage variants, configure the transformer in an initializer after Active Storage is loaded:
+
+```ruby
+ActiveStorage.variant_transformer = Skia::ActiveStorageTransformer
+```
+
+The adapter supports `resize_to_limit`, `resize_to_fit`, `resize_to_fill`, `resize_and_pad`, `crop`, and `rotate`.
+Unsupported operations fail before processing instead of being silently ignored.
+
 For deterministic cleanup, every `Surface` factory also accepts a block:
 
 ```ruby
