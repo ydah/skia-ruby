@@ -29,7 +29,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
   - metadata (`title`, `author`, `creation`, `pdfa`, etc.)
 - `Picture` recording / playback / serialization
 - `RuntimeEffect` (SkSL compile and shader creation)
-- `Skottie` (Lottie JSON animation load/seek/render)
+- `Skottie` (Lottie JSON animation load/seek/render, font and external/data-URI resource providers)
 - Encoders (`PNG`, `JPEG`, `WEBP`)
 - `Codec` metadata, EXIF orientation, and frame decoding for animated GIF/WebP inputs
 - SVG canvas output and sampled image resize/scale helpers
@@ -233,7 +233,7 @@ surface.save_png('runtime_effect.png')
 | Pixel and color APIs (`Bitmap`, `Pixmap`, `ImageInfo`, `ColorSpace`) | Implemented | Read/copy/access pixel-level data |
 | Image and shader extensions | Implemented | Includes gradients and runtime shader compilation |
 | PDF document APIs | Implemented | File/memory output and metadata are supported |
-| `skottie` (Lottie) | Implemented | JSON load/seek/render via `Skia::Skottie::Animation` |
+| `skottie` (Lottie) | Implemented | JSON load/seek/render plus font manager and resource-provider builders |
 | SVG path / SVG DOM | Implemented | `Skia::Svg.parse_path`, `Skia::Svg::Dom` (`<path>` focused) |
 | GPU-oriented surface constructors | Partial | Requires externally managed native GPU context pointers |
 | Text layout modules (`skunicode`, `skshaper`, `skparagraph`) | Partial | Ruby API is available; native symbols may be absent depending on `libSkiaSharp` build |

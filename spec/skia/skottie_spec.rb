@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'tmpdir'
 
 RSpec.describe Skia::Skottie do
   let(:sample_json) do
@@ -58,6 +59,34 @@ RSpec.describe Skia::Skottie do
 
     it 'raises on invalid JSON' do
       expect { described_class.make_from_json('{not json}') }.to raise_error(Skia::Error)
+    end
+  end
+
+  describe Skia::Skottie::ResourceProvider do
+    it 'loads external files and can add caching' do
+      Dir.mktmpdir do |directory|
+        File.binwrite(File.join(directory, 'asset.bin'), 'resource')
+        provider = described_class.file(directory)
+
+        expect(provider.load('asset.bin').to_s).to eq('resource')
+        expect(provider.cached).to be_a(described_class)
+      end
+    end
+
+    it 'creates a data URI provider with fallback' do
+      fallback = described_class.file(Dir.tmpdir)
+
+      expect(described_class.data_uri(fallback: fallback)).to be_a(described_class)
+    end
+  end
+
+  describe Skia::Skottie::AnimationBuilder do
+    it 'builds animations with font and resource providers' do
+      builder = described_class.new(flags: [:prefer_embedded_fonts])
+      builder.font_manager = Skia::FontManager.default
+      builder.resource_provider = Skia::Skottie::ResourceProvider.data_uri
+
+      expect(builder.build_json(sample_json)).to be_a(Skia::Skottie::Animation)
     end
   end
 end

@@ -464,4 +464,26 @@ module Skia
     def self.render: (Numeric width, Numeric height) { (Canvas) -> void } -> Data
     def self.save: (String path, width: Numeric, height: Numeric) { (Canvas) -> void } -> String
   end
+
+  module Skottie
+    class Animation < Base
+      def self.make_from_json: (String json) -> Animation
+      def self.make_from_file: (String path) -> Animation
+    end
+
+    class ResourceProvider < Base
+      def self.file: (String base_directory, ?predecode: bool) -> ResourceProvider
+      def self.data_uri: (?fallback: ResourceProvider?, ?predecode: bool) -> ResourceProvider
+      def cached: () -> ResourceProvider
+      def load: (String name, ?path: String) -> Data?
+    end
+
+    class AnimationBuilder < Base
+      def initialize: (?flags: Integer | Array[Symbol]) -> void
+      def font_manager=: (FontManager manager) -> FontManager
+      def resource_provider=: (ResourceProvider provider) -> ResourceProvider
+      def build_json: (String json) -> Animation
+      def build_file: (String path) -> Animation
+    end
+  end
 end
