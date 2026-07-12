@@ -4,6 +4,8 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'benchmark', require: false
+gem 'benchmark-ips', require: false
 gem 'numo-narray', require: false
 gem 'rake', '~> 13.0'
 gem 'rbs', require: false

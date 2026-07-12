@@ -289,7 +289,17 @@ ruby examples/skottie.rb
 ruby examples/svg_dom.rb
 ```
 
-Release and upstream sync guidance: `docs/release-checklist.md`
+Additional guides:
+
+- [Feature support and native ABI limits](docs/feature-support.md)
+- [Rails, static-site, and GPU integration recipes](docs/integrations.md)
+- [Release and upstream sync guidance](docs/release-checklist.md)
+
+Run the optional resize comparison (installed adapters are detected automatically):
+
+```bash
+bundle exec ruby benchmark/image_resize.rb
+```
 
 Generate API documentation and validate the bundled RBS signatures with:
 

@@ -63,6 +63,7 @@ factory も利用でき、その場合は GC による解放に加えて `surfac
 - Skottie アニメーションの読み込みと描画
 - SVG path の解析・生成と簡易 SVG DOM
 - RBS 型定義と YARD API リファレンス
+- Active Storage variant、OGP カード、CLI
 
 ネイティブビルドに対象シンボルがない機能は、クラッシュさせず `UnsupportedOperationError` と不足シンボル名を返します。
 
@@ -82,6 +83,13 @@ bundle exec rake docs
 ```
 
 API リファレンスは [rubydoc.info/gems/skia](https://rubydoc.info/gems/skia) で参照できます。
+
+機能ごとのネイティブ ABI 制約は [機能サポート表](docs/feature-support.md)、Rails・静的サイト・GPU 連携は
+[連携レシピ](docs/integrations.md) を参照してください。画像リサイズの任意比較ベンチは次のコマンドで実行できます。
+
+```bash
+bundle exec ruby benchmark/image_resize.rb
+```
 
 ## ライセンス
 
