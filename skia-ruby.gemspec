@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   end
   spec.require_paths = ['lib']
   spec.bindir = 'exe'
-  spec.executables = ['skia-install-native']
+  spec.executables = %w[skia skia-install-native]
   spec.post_install_message = <<~MESSAGE
     Skia requires the SkiaSharp native library.
     Install it with: bundle exec skia-install-native

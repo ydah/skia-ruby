@@ -22,6 +22,23 @@ module Skia
   class UnsupportedOperationError < Error
   end
 
+  class Card
+    DEFAULT_WIDTH: Integer
+    DEFAULT_HEIGHT: Integer
+    DEFAULT_COLORS: Array[Color]
+
+    attr_reader title: String
+    attr_reader author: String?
+    attr_reader site_name: String?
+    attr_reader tags: Array[String]
+    attr_reader width: Integer
+    attr_reader height: Integer
+
+    def initialize: (title: String, ?author: String?, ?site_name: String?, ?tags: Array[String], ?width: Integer, ?height: Integer, ?colors: Array[Color | Integer]) -> void
+    def render: () -> Surface
+    def save: (String path, ?format: Symbol?, ?quality: Integer) -> Card
+  end
+
   class Base
     def initialize: (untyped ptr, ?Symbol? release_method, ?owner: untyped) -> void
     def ptr: () -> untyped

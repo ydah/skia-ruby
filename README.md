@@ -163,6 +163,25 @@ end
 surface.save_png('output.png')
 ```
 
+Render a script whose final expression is a `Surface`, `Image`, or encoded `Data`:
+
+```bash
+skia render drawing.rb -o output.png
+skia info output.png
+skia lottie animation.json --frame 12 -o frame.webp
+```
+
+Generate an Open Graph/social card with the high-level helper:
+
+```ruby
+Skia::Card.new(
+  title: 'Shipping fast graphics from Ruby',
+  author: '@rubyist',
+  site_name: 'example.com',
+  tags: %w[Ruby Graphics]
+).save('social-card.png')
+```
+
 For deterministic cleanup, every `Surface` factory also accepts a block:
 
 ```ruby

@@ -42,6 +42,7 @@ require_relative 'skia/svg'
 require_relative 'skia/shader'
 require_relative 'skia/document'
 require_relative 'skia/picture'
+require_relative 'skia/card'
 
 module Skia
   class Error < StandardError; end

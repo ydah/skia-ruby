@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'skia'
+require 'skia/cli'
+
+exit Skia::CLI.run(ARGV)
