@@ -41,6 +41,36 @@ module Skia
       raise
     end
 
+    def self.create_xps(path, dpi: 96.0, &)
+      stream = Native.sk_filewstream_new(path)
+      raise Error, "Failed to create file stream for: #{path}" if stream.nil? || stream.null?
+
+      ptr = create_xps_document(stream, dpi)
+      doc = new(ptr, stream, stream_kind: :file)
+      stream = nil
+      with_optional_block(doc, &)
+    rescue StandardError
+      Native.sk_filewstream_destroy(stream) if stream && !stream.null?
+      raise
+    end
+
+    def self.create_xps_stream(dpi: 96.0, &)
+      stream = Native.sk_dynamicmemorywstream_new
+      raise Error, 'Failed to create memory stream' if stream.nil? || stream.null?
+
+      ptr = create_xps_document(stream, dpi)
+      doc = new(ptr, stream, stream_kind: :memory)
+      stream = nil
+      with_optional_block(doc, &)
+    rescue StandardError
+      Native.sk_dynamicmemorywstream_destroy(stream) if stream && !stream.null?
+      raise
+    end
+
+    def self.xps_available?
+      Gem.win_platform? && Native.function_available?(:sk_document_create_xps_from_stream)
+    end
+
     def begin_page(width, height, rect = nil, content_rect: nil)
       page_rect = content_rect || rect
       content_ptr = page_rect&.to_struct
@@ -85,7 +115,7 @@ module Skia
     end
 
     def to_data
-      raise UnsupportedOperationError, 'to_data is available only for memory-backed PDF documents' unless @stream_kind == :memory
+      raise UnsupportedOperationError, 'to_data is available only for memory-backed documents' unless @stream_kind == :memory
 
       close unless @closed
       @data
@@ -119,6 +149,18 @@ module Skia
       cmetadata, refs = build_pdf_metadata(metadata)
       ptr = Native.sk_document_create_pdf_from_stream_with_metadata(stream, cmetadata)
       [ptr, refs.grep(FFI::Pointer)]
+    end
+
+    def self.create_xps_document(stream, dpi)
+      raise UnsupportedOperationError, 'XPS output requires a Windows libSkiaSharp build' unless xps_available?
+
+      resolution = Float(dpi)
+      raise ArgumentError, 'dpi must be positive' unless resolution.positive?
+
+      ptr = Native.sk_document_create_xps_from_stream(stream, resolution)
+      raise UnsupportedOperationError, 'XPS output is not supported by the current libSkiaSharp build' if ptr.nil? || ptr.null?
+
+      ptr
     end
 
     def self.build_pdf_metadata(metadata)

@@ -93,6 +93,27 @@ RSpec.describe Skia::Document do
     end
   end
 
+  describe 'XPS output' do
+    it 'creates a multi-page XPS document in memory' do
+      skip 'XPS output is supported only by Windows libSkiaSharp builds' unless described_class.xps_available?
+
+      doc = described_class.create_xps_stream(dpi: 144)
+      2.times do
+        doc.page(120, 80) { |canvas| canvas.clear(Skia::Color::WHITE) }
+      end
+
+      data = doc.to_data
+      expect(data.to_s).to start_with('PK')
+      expect(data.size).to be > 100
+    end
+
+    it 'reports native builds without XPS support' do
+      allow(described_class).to receive(:xps_available?).and_return(false)
+
+      expect { described_class.create_xps_stream }.to raise_error(Skia::UnsupportedOperationError, /XPS/)
+    end
+  end
+
   describe '#begin_page' do
     it 'returns a canvas for the page' do
       path = 'test_document.pdf'

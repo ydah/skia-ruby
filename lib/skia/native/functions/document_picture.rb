@@ -7,6 +7,7 @@ module Skia
     attach_function :sk_document_create_pdf_from_stream, [:pointer], :sk_document_t
     optional_attach_function :sk_document_create_pdf_from_stream_with_metadata,
                              [:pointer, SKDocumentPdfMetadata.ptr], :sk_document_t
+    optional_attach_function :sk_document_create_xps_from_stream, %i[pointer float], :sk_document_t
     attach_function :sk_document_begin_page, [:sk_document_t, :float, :float, SKRect.ptr], :sk_canvas_t
     attach_function :sk_document_end_page, [:sk_document_t], :void
     attach_function :sk_document_close, [:sk_document_t], :void

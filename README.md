@@ -23,7 +23,7 @@ This project provides a practical, SkiaSharp-compatible API surface in Ruby, wit
 - `Surface` / `Canvas` / `Paint` / `Path` / `PathMeasure` / `Region` / `Image` / `Shader`
 - Shape and path drawing (rect, rrect, arc, points, picture playback)
 - Mesh and sprite drawing (`draw_vertices`, `draw_atlas`, `draw_patch`)
-- `Document` PDF output
+- `Document` PDF and XPS output
   - file output
   - memory stream output
   - metadata (`title`, `author`, `creation`, `pdfa`, etc.)
@@ -261,6 +261,7 @@ surface.save_png('runtime_effect.png')
 | Pixel and color APIs (`Bitmap`, `Pixmap`, `ImageInfo`, `ColorSpace`) | Implemented | Read/copy/access pixel-level data |
 | Image and shader extensions | Implemented | Includes gradients and runtime shader compilation |
 | PDF document APIs | Implemented | File/memory output and metadata are supported |
+| XPS document APIs | Platform-specific | File/memory and multi-page output are supported by Windows libSkiaSharp builds |
 | `skottie` (Lottie) | Implemented | JSON load/seek/render plus font manager and resource-provider builders |
 | SVG path / SVG DOM | Implemented | SVG canvas output plus path, basic shape, group-content, and text rendering |
 | GPU-oriented surface constructors | Partial | Requires externally managed native GPU context pointers |

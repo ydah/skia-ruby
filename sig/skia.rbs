@@ -47,6 +47,26 @@ module Skia
     def transform: (untyped file, format: Symbol | String) { (untyped) -> untyped } -> untyped
   end
 
+  class Document < Base
+    def self.create_pdf: (String path, ?metadata: Hash[Symbol, untyped]?) -> Document
+                        | (String path, ?metadata: Hash[Symbol, untyped]?) { (Document) -> untyped } -> untyped
+    def self.create_pdf_stream: (?metadata: Hash[Symbol, untyped]?) -> Document
+                               | (?metadata: Hash[Symbol, untyped]?) { (Document) -> untyped } -> untyped
+    def self.create_xps: (String path, ?dpi: Numeric) -> Document
+                        | (String path, ?dpi: Numeric) { (Document) -> untyped } -> untyped
+    def self.create_xps_stream: (?dpi: Numeric) -> Document
+                               | (?dpi: Numeric) { (Document) -> untyped } -> untyped
+    def self.xps_available?: () -> bool
+    def begin_page: (Numeric width, Numeric height, ?Rect? rect, ?content_rect: Rect?) -> Canvas
+                  | (Numeric width, Numeric height, ?Rect? rect, ?content_rect: Rect?) { (Canvas) -> untyped } -> untyped
+    def page: (Numeric width, Numeric height, ?content_rect: Rect?) { (Canvas) -> untyped } -> untyped
+    def end_page: () -> void
+    def close: () -> void
+    def abort: () -> void
+    def to_data: () -> Data
+    def closed?: () -> bool
+  end
+
   class Base
     def initialize: (untyped ptr, ?Symbol? release_method, ?owner: untyped) -> void
     def ptr: () -> untyped
