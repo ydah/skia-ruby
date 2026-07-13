@@ -68,7 +68,19 @@ module Skia
     end
 
     def self.xps_available?
-      Gem.win_platform? && Native.function_available?(:sk_document_create_xps_from_stream)
+      return false unless Gem.win_platform? && Native.function_available?(:sk_document_create_xps_from_stream)
+
+      stream = Native.sk_dynamicmemorywstream_new
+      return false if stream.nil? || stream.null?
+
+      document = Native.sk_document_create_xps_from_stream(stream, 96.0)
+      return false if document.nil? || document.null?
+
+      Native.sk_document_abort(document)
+      true
+    ensure
+      Native.sk_document_unref(document) if document && !document.null?
+      Native.sk_dynamicmemorywstream_destroy(stream) if stream && !stream.null?
     end
 
     def begin_page(width, height, rect = nil, content_rect: nil)

@@ -94,6 +94,39 @@ RSpec.describe Skia::Document do
   end
 
   describe 'XPS output' do
+    describe '.xps_available?' do
+      let(:stream) { FFI::Pointer.new(1) }
+      let(:document) { FFI::Pointer.new(2) }
+
+      before do
+        allow(Gem).to receive(:win_platform?).and_return(true)
+        allow(Skia::Native).to receive(:function_available?)
+          .with(:sk_document_create_xps_from_stream)
+          .and_return(true)
+        allow(Skia::Native).to receive(:sk_dynamicmemorywstream_new).and_return(stream)
+      end
+
+      it 'reports XPS support when the native document can be created' do
+        allow(Skia::Native).to receive(:sk_document_create_xps_from_stream).and_return(document)
+
+        expect(Skia::Native).to receive(:sk_document_abort).with(document)
+        expect(Skia::Native).to receive(:sk_document_unref).with(document)
+        expect(Skia::Native).to receive(:sk_dynamicmemorywstream_destroy).with(stream)
+
+        expect(described_class.xps_available?).to be(true)
+      end
+
+      it 'reports no XPS support when the native document cannot be created' do
+        allow(Skia::Native).to receive(:sk_document_create_xps_from_stream).and_return(FFI::Pointer::NULL)
+
+        expect(Skia::Native).not_to receive(:sk_document_abort)
+        expect(Skia::Native).not_to receive(:sk_document_unref)
+        expect(Skia::Native).to receive(:sk_dynamicmemorywstream_destroy).with(stream)
+
+        expect(described_class.xps_available?).to be(false)
+      end
+    end
+
     it 'creates a multi-page XPS document in memory' do
       skip 'XPS output is supported only by Windows libSkiaSharp builds' unless described_class.xps_available?
 
